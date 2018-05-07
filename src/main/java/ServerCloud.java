@@ -10,7 +10,7 @@ public class ServerCloud
 {
 
     private static final String HOST = "localhost";
-    private static final int PORT = 1337;
+    private static final int PORT = 2018;
 
 
     public static void main(String[] args) throws IOException
