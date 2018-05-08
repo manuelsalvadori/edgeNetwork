@@ -14,14 +14,14 @@ import simulation.SensorStream;
 
 import java.util.Random;
 
-public class Sensor
+public class SensorInitializer
 {
     private PM10Simulator pm10sim;
     private Client sensorClient;
     private Node myNode;
-    private String serverUri = "http://localhost:2018";
+    private String serverUri;
 
-    public Sensor(String restServerUri)
+    public SensorInitializer(String restServerUri)
     {
         this.serverUri = restServerUri;
     }
@@ -30,11 +30,12 @@ public class Sensor
     {
         try
         {
-
-            pm10sim = new PM10Simulator(new ActualSensorStream());
             sensorClient = restClientInit();
-            myNode = sensorInit(serverUri, getCoord(), getCoord());
-
+            int x = getCoord();
+            int y = getCoord();
+            myNode = sensorInit(serverUri, x, y);
+            pm10sim = new PM10Simulator(new ActualSensorStream(sensorClient,serverUri,myNode,x,y));
+            pm10sim.start();
         }
         catch (Exception e) {e.printStackTrace();}
 
@@ -42,14 +43,21 @@ public class Sensor
 
     private Node sensorInit(String uri, int x, int y)
     {
+        System.out.println("Sensor initialization...");
         WebResource webResource = sensorClient.resource(serverUri+"/SensorInit/"+x+"/"+y);
         ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
 
-        if (response.getStatus() != 200)
+        if (response.getStatus() != 404 && response.getStatus() != 200)
             throw new RuntimeException("Failed sensor init: HTTP error code: " + response.getStatus());
 
-        Node output = response.getEntity(Node.class);
-        System.out.print("Received Node id: "+output.getId());
+        Node output = null;
+        if(response.getStatus() != 404)
+        {
+            output = response.getEntity(Node.class);
+            System.out.print("Received node; ID: " + output.getId());
+        }
+        else
+            System.out.println("No node available");
 
         return output;
     }
@@ -63,7 +71,7 @@ public class Sensor
         return Client.create(config);
     }
 
-    private int getCoord()
+    public static int getCoord()
     {
         Random rnd = new Random(System.currentTimeMillis());
         return rnd.nextInt(99);

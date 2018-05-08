@@ -1,0 +1,15 @@
+syntax = "proto3";
+package edge_nodes;
+
+import "google/protobuf/empty.proto";
+
+
+message Measure
+{
+    string m = 1;
+}
+
+service SensorGRPC
+{
+    rpc sendMeasure(Measure) returns (google.protobuf.Empty);
+}

@@ -1,4 +1,4 @@
-package services;
+package cloud_services;
 
 import edge_nodes.Node;
 
@@ -16,6 +16,6 @@ public class SensorsService
     public Response getClosestNode(@PathParam("x") int x, @PathParam("y") int y)
     {
         System.out.println("x:"+x+" y:"+y);
-        return Response.ok(new Node("Node")).build();
+        return Response.ok(new Node("Node", 4000)).build();
     }
 }
