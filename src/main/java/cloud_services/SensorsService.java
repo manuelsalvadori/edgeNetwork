@@ -16,6 +16,9 @@ public class SensorsService
     public Response getClosestNode(@PathParam("x") int x, @PathParam("y") int y)
     {
         System.out.println("x:"+x+" y:"+y);
-        return Response.ok(new Node("Node", 4000)).build();
+        if(System.currentTimeMillis()%2==0)
+            return Response.ok(new Node("Node1", "localhost",4000)).build();
+        else
+            return Response.ok(new Node("Node2", "localhost",4001)).build();
     }
 }

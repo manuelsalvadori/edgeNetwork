@@ -17,7 +17,7 @@ import java.io.IOException;
 
 public class ActualSensorStream implements SensorStream
 {
-    private Node myNode;
+    private volatile Node myNode;
     private Client sensorClient;
     private String serverUri;
     private int x;
@@ -30,6 +30,7 @@ public class ActualSensorStream implements SensorStream
         this.myNode = myNode;
         this.x = x;
         this.y = y;
+        new Thread(new SensorUpdate(this)).start();
     }
 
     @Override
@@ -45,12 +46,11 @@ public class ActualSensorStream implements SensorStream
         }
         catch (IOException e) { e.printStackTrace(); }
 
-        final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:4000").usePlaintext(true).build();
+        final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+myNode.getPort()).usePlaintext(true).build();
 
         SensorGRPCGrpc.SensorGRPCBlockingStub stub = SensorGRPCGrpc.newBlockingStub(channel);
         SensorGRPCOuterClass.Measure request = SensorGRPCOuterClass.Measure.newBuilder().setM(measurement).build();
-        Empty response = stub.sendMeasure(request);
-
+        stub.sendMeasure(request);
         //closing the channel
         channel.shutdown();
 
@@ -74,5 +74,30 @@ public class ActualSensorStream implements SensorStream
             System.out.println("No node available");
 
         return output;
+    }
+
+    public Client getSensorClient()
+    {
+        return sensorClient;
+    }
+
+    public int getX()
+    {
+        return x;
+    }
+
+    public int getY()
+    {
+        return y;
+    }
+
+    public void setMyNode(Node node)
+    {
+        myNode = node;
+    }
+
+    public String getServerUri()
+    {
+        return serverUri;
     }
 }

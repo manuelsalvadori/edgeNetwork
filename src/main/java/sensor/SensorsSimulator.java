@@ -1,5 +1,10 @@
 package sensor;
 
+import org.codehaus.jackson.map.ObjectMapper;
+import simulation.Measurement;
+
+import java.io.IOException;
+
 public class SensorsSimulator
 {
     private static final String SERVER_URI =  "http://localhost:2018";

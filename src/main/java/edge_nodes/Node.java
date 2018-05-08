@@ -8,6 +8,7 @@ import javax.xml.bind.annotation.XmlAccessorType;
 import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 import java.io.IOException;
+import java.util.Scanner;
 
 @XmlRootElement
 @XmlAccessorType(XmlAccessType.FIELD)
@@ -16,14 +17,16 @@ public class Node
     @XmlElement
     private String id;
 
-    private int nodeURI;
+    private String nodeURI;
+    private int port;
 
     public Node() {}
 
-    public Node(String id, int nodeURI)
+    public Node(String id, String nodeURI, int port)
     {
         this.id = id;
         this.nodeURI = nodeURI;
+        this.port = port;
     }
 
     public String getId()
@@ -31,17 +34,25 @@ public class Node
         return id;
     }
 
-    public int getNodeURI()
+    public String getNodeURI()
     {
         return nodeURI;
     }
 
-    public static void main( String[] args )
+    public int getPort()
     {
+        return port;
+    }
+
+    public static void main(String[] args )
+    {
+        Scanner io = new Scanner(System.in);
+        int port = io.nextInt();
+
         try
         {
 
-            Server server = ServerBuilder.forPort(4000).addService(new SensorGRPCImpl()).build();
+            Server server = ServerBuilder.forPort(port).addService(new SensorGRPCImpl()).build();
 
             server.start();
 
