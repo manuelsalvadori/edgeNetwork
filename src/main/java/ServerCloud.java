@@ -15,10 +15,11 @@ public class ServerCloud
 
     public static void main(String[] args) throws IOException
     {
-        HttpServer server = HttpServerFactory.create("http://"+HOST+":"+PORT+"/");
+        final String URI = "http://"+HOST+":"+PORT+"/";
+        HttpServer server = HttpServerFactory.create(URI);
         server.start();
 
-        System.out.println("Cloud server started on: http://"+HOST+":"+PORT);
+        System.out.println("Cloud server started on: " + URI);
 
         System.out.println("Hit return to stop...");
         System.in.read();
