@@ -1,6 +1,7 @@
 package sensor;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
 import edge_nodes.Node;
@@ -25,7 +26,10 @@ public class SensorUpdate implements Runnable
             {
                 Thread.sleep(10000);
             }
-            catch (InterruptedException e) { e.printStackTrace(); }
+            catch (InterruptedException e)
+            {
+                System.out.println(ss.getId()+" - Connection with node lost - Retrieving new node in advance...");
+            }
 
             retrieveNode();
 
@@ -35,21 +39,37 @@ public class SensorUpdate implements Runnable
 
     private void retrieveNode()
     {
-        System.out.println("Retrieving node...");
-        WebResource webResource = ss.getSensorClient().resource(ss.getServerUri()+"/SensorInit/"+ss.getX()+"/"+ss.getY());
-        ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
+        System.out.println(ss.getId()+" - Retrieving node...");
 
-        if (response.getStatus() != 404 && response.getStatus() != 200)
-            throw new RuntimeException("Failed retrieving node: HTTP error code: " + response.getStatus());
+        ClientResponse response;
+        try
+        {
+            WebResource webResource = ss.getSensorClient().resource(ss.getServerUri()+"/SensorInit/"+ss.getX()+"/"+ss.getY());
+            response = webResource.accept("application/json").get(ClientResponse.class);
+        }
+        catch(ClientHandlerException ce)
+        {
+            System.out.println(ss.getId()+" - Server cloud connection refused - impossible to retrieve a node");
+            ss.setMyNode(null);
+            return;
+        }
 
         Node output = null;
-        if(response.getStatus() != 404)
+
+        switch (response.getStatus())
         {
-            output = response.getEntity(Node.class);
-            System.out.println("Received new node; ID: " + output.getId());
+            case 200:
+                output = response.getEntity(Node.class);
+                System.out.println(ss.getId()+" - Received new node; ID: " + output.getId());
+                break;
+
+            case 404:
+                System.out.println(ss.getId()+" - No node available");
+                break;
+
+            default:
+                System.out.println(ss.getId()+" - Failed sensor init: HTTP error code: " + response.getStatus());
         }
-        else
-            System.out.println("No node available");
 
         ss.setMyNode(output);
     }

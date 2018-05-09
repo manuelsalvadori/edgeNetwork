@@ -13,7 +13,6 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
     public void sendMeasure(SensorGRPCOuterClass.Measure request, StreamObserver<Empty> responseObserver)
     {
         Measurement m = null;
-        System.out.println(request.getM());
         ObjectMapper mapper = new ObjectMapper();
         try
         {
@@ -21,7 +20,7 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
         }
         catch (IOException e) { e.printStackTrace(); }
         if(m != null)
-            System.out.println("id:"+m.getId()+" value: "+m.getValue() + " time: "+m.getTimestamp());
+            System.out.println("id: "+m.getId()+" value: "+m.getValue() + " time: "+m.getTimestamp());
 
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();

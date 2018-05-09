@@ -9,6 +9,7 @@ import edge_nodes.SensorGRPCGrpc;
 import edge_nodes.SensorGRPCOuterClass;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import org.codehaus.jackson.map.ObjectMapper;
 import simulation.Measurement;
 import simulation.SensorStream;
@@ -22,22 +23,29 @@ public class ActualSensorStream implements SensorStream
     private String serverUri;
     private int x;
     private int y;
+    private Thread nodeUpdater;
+    private String id;
 
-    public ActualSensorStream(Client sensorClient, String serverUri, Node myNode, int x, int y)
+    public ActualSensorStream(String id, Client sensorClient, String serverUri, Node myNode, int x, int y)
     {
+        this.id = id;
         this.sensorClient = sensorClient;
         this.serverUri = serverUri;
         this.myNode = myNode;
         this.x = x;
         this.y = y;
-        new Thread(new SensorUpdate(this)).start();
+        nodeUpdater = new Thread(new SensorUpdate(this));
+        nodeUpdater.start();
     }
 
     @Override
     public void sendMeasurement(Measurement m)
     {
         if(myNode == null)
+        {
+            System.out.println("NULL");
             return;
+        }
 
         String measurement = null;
         try
@@ -47,33 +55,19 @@ public class ActualSensorStream implements SensorStream
         catch (IOException e) { e.printStackTrace(); }
 
         final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+myNode.getPort()).usePlaintext(true).build();
-
         SensorGRPCGrpc.SensorGRPCBlockingStub stub = SensorGRPCGrpc.newBlockingStub(channel);
         SensorGRPCOuterClass.Measure request = SensorGRPCOuterClass.Measure.newBuilder().setM(measurement).build();
-        stub.sendMeasure(request);
-        //closing the channel
-        channel.shutdown();
 
-    }
-
-    private Node retrieveNode(String uri)
-    {
-        WebResource webResource = sensorClient.resource(serverUri+"/SensorInit/"+x+"/"+y);
-        ClientResponse response = webResource.accept("application/json").get(ClientResponse.class);
-
-        if (response.getStatus() != 404 && response.getStatus() != 200)
-            throw new RuntimeException("Failed sensor init: HTTP error code: " + response.getStatus());
-
-        Node output = null;
-        if(response.getStatus() != 404)
+        try
         {
-            output = response.getEntity(Node.class);
-            System.out.print("Received node; ID: " + output.getId());
+            stub.sendMeasure(request);
         }
-        else
-            System.out.println("No node available");
+        catch(StatusRuntimeException e)
+        {
+            nodeUpdater.interrupt();
+        }
 
-        return output;
+        channel.shutdown();
     }
 
     public Client getSensorClient()
@@ -99,5 +93,10 @@ public class ActualSensorStream implements SensorStream
     public String getServerUri()
     {
         return serverUri;
+    }
+
+    public String getId()
+    {
+        return id;
     }
 }
