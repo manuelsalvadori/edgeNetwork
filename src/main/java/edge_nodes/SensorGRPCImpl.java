@@ -1,5 +1,6 @@
 package edge_nodes;
 
+import com.google.gson.Gson;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
 import org.codehaus.jackson.map.ObjectMapper;
@@ -16,9 +17,9 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
         ObjectMapper mapper = new ObjectMapper();
         try
         {
-            m = mapper.readValue(request.getM(), Measurement.class); // JSON to object Measurement
+            m = new Gson().fromJson(request.getM(),Measurement.class);//mapper.readValue(request.getM(), Measurement.class); // JSON to object Measurement
         }
-        catch (IOException e) { e.printStackTrace(); }
+        catch (Exception e) { e.printStackTrace(); }
         if(m != null)
             System.out.println("id: "+m.getId()+" value: "+m.getValue() + " time: "+m.getTimestamp());
 

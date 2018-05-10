@@ -1,5 +1,6 @@
 package sensor;
 
+import com.google.gson.Gson;
 import com.google.protobuf.Empty;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -50,9 +51,9 @@ public class ActualSensorStream implements SensorStream
         String measurement = null;
         try
         {
-            measurement = new ObjectMapper().writeValueAsString(m);
+            measurement = new Gson().toJson(m);//new ObjectMapper().writeValueAsString(m);
         }
-        catch (IOException e) { e.printStackTrace(); }
+        catch (Exception e) { e.printStackTrace(); }
 
         final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+myNode.getPort()).usePlaintext(true).build();
         SensorGRPCGrpc.SensorGRPCBlockingStub stub = SensorGRPCGrpc.newBlockingStub(channel);
