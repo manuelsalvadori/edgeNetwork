@@ -27,7 +27,22 @@ public class SensorsService
 
     private EdgeNode retrieveNode(int x, int y)
     {
-        // TO DO
-        return NodesGrid.getInstance().getEdgeNodeList().iterator().next();
+        EdgeNode node = null;
+        int minDistance = Integer.MAX_VALUE;
+        for(EdgeNode n: NodesGrid.getInstance().getEdgeNodeList())
+        {
+            int dist = distance(x, y, n.getX(), n.getY());
+            if(dist < minDistance)
+            {
+                minDistance = dist;
+                node = n;
+            }
+        }
+        return node;
+    }
+
+    private int distance(int x1, int y1, int x2, int y2)
+    {
+        return Math.abs(x1-x2) + Math.abs(y1-y2);
     }
 }
