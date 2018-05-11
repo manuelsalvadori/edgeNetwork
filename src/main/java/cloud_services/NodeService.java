@@ -15,24 +15,73 @@ public class NodeService
     @Consumes("application/json")
     public Response getClosestNode(String nodeJson)
     {
-        System.out.println(nodeJson);
         Gson g = new Gson();
         NodeIdentifier node = g.fromJson(nodeJson, NodeIdentifier.class);
-        System.out.println(node);
-        if(testLegality(node))
+
+        String isLegal = testLegality(node);
+
+        if(isLegal.equals("Legal"))
         {
-            // restituire lista con o senza il nodo stesso?
+            String jsonNodeList = g.toJson(NodesGrid.getInstance().getNodeIdentifierList());
             NodesGrid.getInstance().addNode(node);
-            System.out.println(NodesGrid.getInstance().getNodeIdentifierList().iterator().next());
-            return Response.ok(g.toJson(NodesGrid.getInstance().getNodeIdentifierList())).build();
+            return Response.ok(jsonNodeList).build();
         }
-        else
-            return Response.status(403).entity("Illegal position").build();
+
+        return Response.status(403).entity(isLegal).build();
     }
 
-    private boolean testLegality(NodeIdentifier node)
+    //rivedere
+    private String testLegality(NodeIdentifier node)
     {
-        // TO DO
+        if(!testPosition(node.getX(), node.getY()))
+            return "Illegal position";
+
+        if(!testNodeID(node.getId()))
+            return "Illegal id";
+
+        if(!testSensorsPort(node.getSensorsPort()))
+            return "Illegal sensor port";
+
+        if(!testNodesPort(node.getNodesPort()))
+            return "Illegal node port";
+
+        return "Legal";
+    }
+
+    private boolean testPosition(int x, int y)
+    {
+        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
+            if(!checkDistance(nid.getX(), nid.getY(), x, y))
+                return false;
         return true;
+    }
+
+    private boolean testNodeID(String id)
+    {
+        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
+            if(nid.getId().equals(id))
+                return false;
+        return true;
+    }
+
+    private boolean testSensorsPort(int port)
+    {
+        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
+            if(nid.getSensorsPort() == port)
+                return false;
+        return true;
+    }
+
+    private boolean testNodesPort(int port)
+    {
+        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
+            if(nid.getNodesPort() == port)
+                return false;
+        return true;
+    }
+
+    private boolean checkDistance(int x1, int y1, int x2, int y2)
+    {
+        return Math.abs(x1-x2) + Math.abs(y1-y2) < 20;
     }
 }

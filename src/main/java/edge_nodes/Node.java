@@ -27,6 +27,7 @@ public class Node
 
     private NodeIdentifier nodeIdentifier;
     private String serverURI;
+    private HashSet<NodeIdentifier> localNodesList;
 
     public Node(String id, String serverURI, int sensorPort, int nodePort)
     {
@@ -74,7 +75,7 @@ public class Node
         String nodeId = io.nextLine();
 
         Node node = new Node(nodeId, serverURI, sensorPort, nodePort);
-        node.nodeInit(2,3);
+        node.localNodesList = node.nodeInit(2,3);
 
         try
         {
@@ -83,9 +84,7 @@ public class Node
             System.out.println("Node started!");
             server.awaitTermination();
         }
-        catch (IOException e) {e.printStackTrace();}
-        catch (InterruptedException e) {e.printStackTrace();}
-
+        catch (Exception e) {e.printStackTrace();}
 
     }
 
