@@ -3,7 +3,6 @@ package edge_nodes;
 
 import "google/protobuf/empty.proto";
 
-
 message Measure
 {
     string m = 1;

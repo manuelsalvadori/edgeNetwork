@@ -22,7 +22,11 @@ public class NodeManager
         String nodeId = io.nextLine();
 
         EdgeNode node = new EdgeNode(nodeId, serverURI, sensorPort, nodePort);
-        node.nodeInit(sensorPort-4000,nodePort-4000);
+        if(!node.nodeInit())
+        {
+            System.out.println("Node initialization failed - try again");
+            return;
+        }
 
         try
         {

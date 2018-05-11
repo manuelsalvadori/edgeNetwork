@@ -20,7 +20,7 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
     @Override
     public void sendMeasure(SensorGRPCOuterClass.Measure request, StreamObserver<Empty> responseObserver)
     {
-        Measurement m = null;
+        Measurement m = null; //basta json invece di protobuf?
         ObjectMapper mapper = new ObjectMapper();
         try
         {

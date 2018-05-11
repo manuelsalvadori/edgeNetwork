@@ -27,16 +27,19 @@ public class NodeService
             return Response.ok(jsonNodeList).build();
         }
 
-        return Response.status(403).entity(isLegal).build();
+        if(isLegal.equals("Illegal position"))
+            return Response.status(403).entity(isLegal).build();
+
+        return Response.status(400).entity(isLegal).build();
     }
 
     private String testLegality(EdgeNode node)
     {
+        if(node.getSensorsPort() == node.getNodesPort())
+            return "Illegal ports: they must be unique";
+
         for(EdgeNode nid: NodesGrid.getInstance().getEdgeNodeList())
         {
-            if (!testPosition(node.getX(), node.getY(), nid))
-                return "Illegal position";
-
             if (!testNodeID(node.getId(), nid))
                 return "Illegal id";
 
@@ -45,8 +48,10 @@ public class NodeService
 
             if (!testNodesPort(node.getNodesPort(), nid))
                 return "Illegal node port";
-        }
 
+            if (!testPosition(node.getX(), node.getY(), nid))
+                return "Illegal position";
+        }
         return "Legal";
     }
 

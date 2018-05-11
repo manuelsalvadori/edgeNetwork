@@ -53,6 +53,7 @@ public class ActualSensorStream implements SensorStream
 
         final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+ myEdgeNode.getSensorsPort()).usePlaintext(true).build();
         SensorGRPCGrpc.SensorGRPCBlockingStub stub = SensorGRPCGrpc.newBlockingStub(channel);
+        //basta json invece di protobuf?
         SensorGRPCOuterClass.Measure request = SensorGRPCOuterClass.Measure.newBuilder().setM(measurement).build();
 
         try

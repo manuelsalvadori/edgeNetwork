@@ -12,6 +12,7 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
 import java.util.HashSet;
+import java.util.Random;
 
 public class EdgeNode
 {
@@ -90,39 +91,54 @@ public class EdgeNode
         this.localNodesList = localNodesList;
     }
 
-    public void nodeInit(int x, int y)
+    public boolean nodeInit()
     {
-        this.x = x;
-        this.y = y;
-        System.out.println(this.getId()+ " - Node initialization...");
-        ClientResponse response;
-        try
+        Client restClient = restClientInit();
+        int i = 2;
+        do
         {
-            WebResource webResource = restClientInit().resource(this.serverURI+"/NodeInit/");
-            String json = new Gson().toJson(this);
-            response = webResource.type("application/json").post(ClientResponse.class, json);
-        }
-        catch(ClientHandlerException ce)
-        {
-            System.out.println(this.getId()+ " - Server cloud connection refused - init impossible");
-            return;
-        }
+            Random rnd = new Random(System.currentTimeMillis());
+            this.x = rnd.nextInt(99);
+            this.y = rnd.nextInt(99);
 
-        switch (response.getStatus())
-        {
-            case 200:
-                String json = response.getEntity(String.class);
-                this.localNodesList = new Gson().fromJson(json, new TypeToken<HashSet<EdgeNode>>(){}.getType());
-                System.out.println(this.getId() + " - Successfully added to the cloud");
-                break;
+            System.out.println(this.getId() + " (" + x + "," + y + ") - Node initialization...");
+            ClientResponse response;
+            try
+            {
+                WebResource webResource = restClient.resource(this.serverURI + "/NodeInit/");
+                String json = new Gson().toJson(this);
+                response = webResource.type("application/json").post(ClientResponse.class, json);
+            }
+            catch (ClientHandlerException ce)
+            {
+                System.out.println(this.getId() + " - Server cloud connection refused - init impossible");
+                return false;
+            }
 
-            case 403:
-                System.out.println(this.getId() + response.getEntity(String.class));
-                break;
+            switch (response.getStatus())
+            {
+                case 200:
+                    String json = response.getEntity(String.class);
+                    this.localNodesList = new Gson().fromJson(json, new TypeToken<HashSet<EdgeNode>>()
+                    {
+                    }.getType());
+                    System.out.println(this.getId() + " - Successfully added to the cloud");
+                    return true;
 
-            default:
-                System.out.println(this.getId() + " - Failed node init: HTTP error code: " + response.getStatus());
-        }
+                case 403:
+                    System.out.println(this.getId() + " - " + response.getEntity(String.class));
+                    System.out.println("Retrying: attempt " + i + "/10");
+                    break;
+
+                case 400:
+                    System.out.println(this.getId() + " - ERROR " + response.getEntity(String.class));
+                    return false;
+
+                default:
+                    System.out.println(this.getId() + " - ERROR Failed node init: HTTP error code: " + response.getStatus());
+            }
+        }while(i++ < 10);
+        return false;
     }
 
     private Client restClientInit()
@@ -130,7 +146,7 @@ public class EdgeNode
         ClientConfig config = new DefaultClientConfig();
         config.getClasses().add(JacksonJaxbJsonProvider.class);
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        System.out.println(this.getId()+ " - Client configurated");
+        System.out.println(this.getId()+ " - REST client configured");
         return Client.create(config);
     }
 
