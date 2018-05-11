@@ -17,7 +17,7 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
         ObjectMapper mapper = new ObjectMapper();
         try
         {
-            m = new Gson().fromJson(request.getM(),Measurement.class);//mapper.readValue(request.getM(), Measurement.class); // JSON to object Measurement
+            m = new Gson().fromJson(request.getM(), Measurement.class);
         }
         catch (Exception e) { e.printStackTrace(); }
         if(m != null)
@@ -25,6 +25,5 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
 
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
-
     }
 }

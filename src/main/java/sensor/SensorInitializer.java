@@ -1,5 +1,6 @@
 package sensor;
 
+import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
@@ -7,7 +8,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.client.ClientHandlerException;
-import edge_nodes.Node;
+import edge_nodes.NodeIdentifier;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import simulation.PM10Simulator;
 
@@ -27,19 +28,19 @@ public class SensorInitializer
     {
         try
         {
-            sensorClient = restClientInit();
+            sensorClient = restClientInit(id);
             int[] coord = getCoord();
-            Node myNode = sensorInit(coord[0], coord[1]);
-            PM10Simulator pm10 = new PM10Simulator(new ActualSensorStream(id, sensorClient, serverUri, myNode, coord[0], coord[1]));
+            NodeIdentifier myNodeIdentifier = sensorInit(id, coord[0], coord[1]);
+            PM10Simulator pm10 = new PM10Simulator(new ActualSensorStream(id, sensorClient, serverUri, myNodeIdentifier, coord[0], coord[1]));
             pm10.start();
         }
         catch (Exception e) {e.printStackTrace();}
 
     }
 
-    private Node sensorInit(int x, int y)
+    private NodeIdentifier sensorInit(String id, int x, int y)
     {
-        System.out.println("Sensor initialization...");
+        System.out.println(id+ " - Sensor initialization...");
         ClientResponse response;
         try
         {
@@ -48,36 +49,37 @@ public class SensorInitializer
         }
         catch(ClientHandlerException ce)
         {
-            System.out.println("Server cloud connection refused - impossible to retrieve a node");
+            System.out.println(id+ " - Server cloud connection refused - impossible to retrieve a node");
             return null;
         }
 
-        Node output = null;
+        NodeIdentifier output = null;
 
         switch (response.getStatus())
         {
             case 200:
-                output = response.getEntity(Node.class);
-                System.out.print("Received node; ID: " + output.getId());
+                String json = response.getEntity(String.class);
+                output = new Gson().fromJson(json, NodeIdentifier.class);//response.getEntity(NodeIdentifier.class); // Gson?
+                System.out.println(id+ " - Received node; ID: " + output.getId());
                 break;
 
             case 404:
-                System.out.println("No node available");
+                System.out.println(id+ " - No node available");
                 break;
 
             default:
-                System.out.println("Failed sensor init: HTTP error code: " + response.getStatus());
+                System.out.println(id+ " - Failed sensor init: HTTP error code: " + response.getStatus());
         }
 
         return output;
     }
 
-    private Client restClientInit()
+    private Client restClientInit(String id)
     {
         ClientConfig config = new DefaultClientConfig();
         config.getClasses().add(JacksonJaxbJsonProvider.class);
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        System.out.println("Client configurated");
+        System.out.println(id+ " - Client configurated");
         return Client.create(config);
     }
 

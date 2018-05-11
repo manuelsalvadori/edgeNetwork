@@ -1,10 +1,10 @@
 package sensor;
 
-import com.sun.jersey.api.client.Client;
+import com.google.gson.Gson;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import edge_nodes.Node;
+import edge_nodes.NodeIdentifier;
 
 public class SensorUpdate implements Runnable
 {
@@ -19,7 +19,7 @@ public class SensorUpdate implements Runnable
     @Override
     public void run()
     {
-        System.out.println("SensorUpdate started");
+        System.out.println(ss.getId()+ " - SensorUpdate started");
         while(true)
         {
             try
@@ -50,20 +50,21 @@ public class SensorUpdate implements Runnable
         catch(ClientHandlerException ce)
         {
             System.out.println(ss.getId()+" - Server cloud connection refused - impossible to retrieve a node");
-            ss.setMyNode(null);
+            ss.setMyNodeIdentifier(null);
             return;
         }
 
-        Node output = null;
+        NodeIdentifier output = null;
 
         switch (response.getStatus())
         {
             case 200:
-                output = response.getEntity(Node.class);
+                String json = response.getEntity(String.class);
+                output = new Gson().fromJson(json, NodeIdentifier.class);
                 System.out.println(ss.getId()+" - Received new node; ID: " + output.getId());
                 break;
 
-            case 404:
+            case 204:
                 System.out.println(ss.getId()+" - No node available");
                 break;
 
@@ -71,6 +72,6 @@ public class SensorUpdate implements Runnable
                 System.out.println(ss.getId()+" - Failed sensor init: HTTP error code: " + response.getStatus());
         }
 
-        ss.setMyNode(output);
+        ss.setMyNodeIdentifier(output);
     }
 }
