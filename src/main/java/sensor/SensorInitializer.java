@@ -8,7 +8,7 @@ import com.sun.jersey.api.client.config.ClientConfig;
 import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import com.sun.jersey.api.client.ClientHandlerException;
-import edge_nodes.NodeIdentifier;
+import edge_nodes.EdgeNode;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import simulation.PM10Simulator;
 
@@ -30,15 +30,15 @@ public class SensorInitializer
         {
             sensorClient = restClientInit(id);
             int[] coord = getCoord();
-            NodeIdentifier myNodeIdentifier = sensorInit(id, coord[0], coord[1]);
-            PM10Simulator pm10 = new PM10Simulator(new ActualSensorStream(id, sensorClient, serverUri, myNodeIdentifier, coord[0], coord[1]));
+            EdgeNode myEdgeNode = sensorInit(id, coord[0], coord[1]);
+            PM10Simulator pm10 = new PM10Simulator(new ActualSensorStream(id, sensorClient, serverUri, myEdgeNode, coord[0], coord[1]));
             pm10.start();
         }
         catch (Exception e) {e.printStackTrace();}
 
     }
 
-    private NodeIdentifier sensorInit(String id, int x, int y)
+    private EdgeNode sensorInit(String id, int x, int y)
     {
         System.out.println(id+ " - Sensor initialization...");
         ClientResponse response;
@@ -53,13 +53,13 @@ public class SensorInitializer
             return null;
         }
 
-        NodeIdentifier output = null;
+        EdgeNode output = null;
 
         switch (response.getStatus())
         {
             case 200:
                 String json = response.getEntity(String.class);
-                output = new Gson().fromJson(json, NodeIdentifier.class);//response.getEntity(NodeIdentifier.class); // Gson?
+                output = new Gson().fromJson(json, EdgeNode.class);//response.getEntity(NodeIdentifier.class); // Gson?
                 System.out.println(id+ " - Received node; ID: " + output.getId());
                 break;
 

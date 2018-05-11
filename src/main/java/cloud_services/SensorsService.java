@@ -1,7 +1,7 @@
 package cloud_services;
 
 import com.google.gson.Gson;
-import edge_nodes.NodeIdentifier;
+import edge_nodes.EdgeNode;
 import edge_nodes.NodesGrid;
 
 import javax.ws.rs.GET;
@@ -18,16 +18,16 @@ public class SensorsService
     public Response getClosestNode(@PathParam("x") int x, @PathParam("y") int y)
     {
         System.out.println("x:"+x+" y:"+y);
-        NodeIdentifier nid = retrieveNode(x,y);
+        EdgeNode nid = retrieveNode(x,y);
 
         if(nid != null)
             return Response.ok(new Gson().toJson(nid)).build();
         return Response.status(404).entity("No node available").build();
     }
 
-    private NodeIdentifier retrieveNode(int x, int y)
+    private EdgeNode retrieveNode(int x, int y)
     {
         // TO DO
-        return NodesGrid.getInstance().getNodeIdentifierList().iterator().next();
+        return NodesGrid.getInstance().getEdgeNodeList().iterator().next();
     }
 }

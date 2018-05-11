@@ -4,7 +4,7 @@ import com.google.gson.Gson;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.WebResource;
-import edge_nodes.NodeIdentifier;
+import edge_nodes.EdgeNode;
 
 public class SensorUpdate implements Runnable
 {
@@ -50,17 +50,17 @@ public class SensorUpdate implements Runnable
         catch(ClientHandlerException ce)
         {
             System.out.println(ss.getId()+" - Server cloud connection refused - impossible to retrieve a node");
-            ss.setMyNodeIdentifier(null);
+            ss.setMyEdgeNode(null);
             return;
         }
 
-        NodeIdentifier output = null;
+        EdgeNode output = null;
 
         switch (response.getStatus())
         {
             case 200:
                 String json = response.getEntity(String.class);
-                output = new Gson().fromJson(json, NodeIdentifier.class);
+                output = new Gson().fromJson(json, EdgeNode.class);
                 System.out.println(ss.getId()+" - Received new node; ID: " + output.getId());
                 break;
 
@@ -72,6 +72,6 @@ public class SensorUpdate implements Runnable
                 System.out.println(ss.getId()+" - Failed sensor init: HTTP error code: " + response.getStatus());
         }
 
-        ss.setMyNodeIdentifier(output);
+        ss.setMyEdgeNode(output);
     }
 }

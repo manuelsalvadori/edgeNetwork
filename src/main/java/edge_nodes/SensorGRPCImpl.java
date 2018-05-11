@@ -10,6 +10,13 @@ import java.io.IOException;
 
 public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
 {
+    Node node;
+
+    public SensorGRPCImpl(Node node)
+    {
+        this.node = node;
+    }
+
     @Override
     public void sendMeasure(SensorGRPCOuterClass.Measure request, StreamObserver<Empty> responseObserver)
     {

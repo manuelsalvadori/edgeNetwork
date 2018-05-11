@@ -2,7 +2,7 @@ package sensor;
 
 import com.google.gson.Gson;
 import com.sun.jersey.api.client.Client;
-import edge_nodes.NodeIdentifier;
+import edge_nodes.EdgeNode;
 import edge_nodes.SensorGRPCGrpc;
 import edge_nodes.SensorGRPCOuterClass;
 import io.grpc.ManagedChannel;
@@ -13,7 +13,7 @@ import simulation.SensorStream;
 
 public class ActualSensorStream implements SensorStream
 {
-    private volatile NodeIdentifier myNodeIdentifier;
+    private volatile EdgeNode myEdgeNode;
     private Client sensorClient;
     private String serverUri;
     private int x;
@@ -21,12 +21,12 @@ public class ActualSensorStream implements SensorStream
     private Thread nodeUpdater;
     private String id;
 
-    public ActualSensorStream(String id, Client sensorClient, String serverUri, NodeIdentifier myNodeIdentifier, int x, int y)
+    public ActualSensorStream(String id, Client sensorClient, String serverUri, EdgeNode myEdgeNode, int x, int y)
     {
         this.id = id;
         this.sensorClient = sensorClient;
         this.serverUri = serverUri;
-        this.myNodeIdentifier = myNodeIdentifier;
+        this.myEdgeNode = myEdgeNode;
         this.x = x;
         this.y = y;
         nodeUpdater = new Thread(new SensorUpdate(this));
@@ -36,20 +36,22 @@ public class ActualSensorStream implements SensorStream
     @Override
     public void sendMeasurement(Measurement m)
     {
-        if(myNodeIdentifier == null)
+        if(myEdgeNode == null)
         {
-            System.out.println(id+ " - NULL");
+            System.out.println(id+ " - no node available");
             return;
         }
 
         String measurement = null;
         try
         {
-            measurement = new Gson().toJson(m);//new ObjectMapper().writeValueAsString(m);
+            measurement = new Gson().toJson(m);
         }
         catch (Exception e) { e.printStackTrace(); }
 
-        final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+ myNodeIdentifier.getSensorsPort()).usePlaintext(true).build();
+        assert measurement != null;
+
+        final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+ myEdgeNode.getSensorsPort()).usePlaintext(true).build();
         SensorGRPCGrpc.SensorGRPCBlockingStub stub = SensorGRPCGrpc.newBlockingStub(channel);
         SensorGRPCOuterClass.Measure request = SensorGRPCOuterClass.Measure.newBuilder().setM(measurement).build();
 
@@ -80,9 +82,9 @@ public class ActualSensorStream implements SensorStream
         return y;
     }
 
-    public void setMyNodeIdentifier(NodeIdentifier nodeIdentifier)
+    public void setMyEdgeNode(EdgeNode edgeNode)
     {
-        myNodeIdentifier = nodeIdentifier;
+        myEdgeNode = edgeNode;
     }
 
     public String getServerUri()

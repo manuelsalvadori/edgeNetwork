@@ -1,7 +1,7 @@
 package cloud_services;
 
 import com.google.gson.Gson;
-import edge_nodes.NodeIdentifier;
+import edge_nodes.EdgeNode;
 import edge_nodes.NodesGrid;
 
 import javax.ws.rs.*;
@@ -16,13 +16,13 @@ public class NodeService
     public Response getClosestNode(String nodeJson)
     {
         Gson g = new Gson();
-        NodeIdentifier node = g.fromJson(nodeJson, NodeIdentifier.class);
+        EdgeNode node = g.fromJson(nodeJson, EdgeNode.class);
 
         String isLegal = testLegality(node);
 
         if(isLegal.equals("Legal"))
         {
-            String jsonNodeList = g.toJson(NodesGrid.getInstance().getNodeIdentifierList());
+            String jsonNodeList = g.toJson(NodesGrid.getInstance().getEdgeNodeList());
             NodesGrid.getInstance().addNode(node);
             return Response.ok(jsonNodeList).build();
         }
@@ -30,53 +30,51 @@ public class NodeService
         return Response.status(403).entity(isLegal).build();
     }
 
-    //rivedere
-    private String testLegality(NodeIdentifier node)
+    private String testLegality(EdgeNode node)
     {
-        if(!testPosition(node.getX(), node.getY()))
-            return "Illegal position";
+        for(EdgeNode nid: NodesGrid.getInstance().getEdgeNodeList())
+        {
+            if (!testPosition(node.getX(), node.getY(), nid))
+                return "Illegal position";
 
-        if(!testNodeID(node.getId()))
-            return "Illegal id";
+            if (!testNodeID(node.getId(), nid))
+                return "Illegal id";
 
-        if(!testSensorsPort(node.getSensorsPort()))
-            return "Illegal sensor port";
+            if (!testSensorsPort(node.getSensorsPort(), nid))
+                return "Illegal sensor port";
 
-        if(!testNodesPort(node.getNodesPort()))
-            return "Illegal node port";
+            if (!testNodesPort(node.getNodesPort(), nid))
+                return "Illegal node port";
+        }
 
         return "Legal";
     }
 
-    private boolean testPosition(int x, int y)
+    private boolean testPosition(int x, int y, EdgeNode nid)
     {
-        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
-            if(!checkDistance(nid.getX(), nid.getY(), x, y))
-                return false;
+        if(!checkDistance(nid.getX(), nid.getY(), x, y))
+            return false;
         return true;
     }
 
-    private boolean testNodeID(String id)
+    private boolean testNodeID(String id, EdgeNode nid)
     {
-        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
-            if(nid.getId().equals(id))
-                return false;
+        if(nid.getId().equals(id))
+            return false;
         return true;
     }
 
-    private boolean testSensorsPort(int port)
+    private boolean testSensorsPort(int port, EdgeNode nid)
     {
-        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
-            if(nid.getSensorsPort() == port)
-                return false;
+        if(nid.getSensorsPort() == port)
+            return false;
         return true;
     }
 
-    private boolean testNodesPort(int port)
+    private boolean testNodesPort(int port, EdgeNode nid)
     {
-        for(NodeIdentifier nid: NodesGrid.getInstance().getNodeIdentifierList())
-            if(nid.getNodesPort() == port)
-                return false;
+        if(nid.getNodesPort() == port)
+            return false;
         return true;
     }
 

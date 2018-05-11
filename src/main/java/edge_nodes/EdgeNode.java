@@ -1,20 +1,22 @@
 package edge_nodes;
 
-public class NodeIdentifier
+public class EdgeNode
 {
     private String id;
     private String nodeURI;
     private int sensorsPort;
     private int nodesPort;
+    private boolean isCoordinator;
     private int x;
     private int y;
 
-    public NodeIdentifier(String id, String nodeURI, int sensorsPort, int nodesPort)
+    public EdgeNode(String id, String nodeURI, int sensorsPort, int nodesPort)
     {
         this.id = id;
         this.nodeURI = nodeURI;
         this.sensorsPort = sensorsPort;
         this.nodesPort = nodesPort;
+        this.isCoordinator = false;
     }
 
     public String getId()
@@ -45,5 +47,15 @@ public class NodeIdentifier
     public int getX()
     {
         return x;
+    }
+
+    public boolean getIsCoordinator()
+    {
+        return isCoordinator;
+    }
+
+    public void setIsCoordinator(boolean isCoordinator)
+    {
+        this.isCoordinator = isCoordinator;
     }
 }

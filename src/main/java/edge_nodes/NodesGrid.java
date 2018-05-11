@@ -7,11 +7,11 @@ import java.util.Set;
 public class NodesGrid
 {
     private static NodesGrid instance;
-    private Set<NodeIdentifier> nodeIdentifierList;
+    private Set<EdgeNode> edgeNodeList;
 
     public NodesGrid()
     {
-        this.nodeIdentifierList = new HashSet<>();
+        this.edgeNodeList = new HashSet<>();
     }
 
     public synchronized static NodesGrid getInstance()
@@ -21,19 +21,19 @@ public class NodesGrid
         return instance;
     }
 
-    public synchronized Set<NodeIdentifier> getNodeIdentifierList()
+    public synchronized Set<EdgeNode> getEdgeNodeList()
     {
-        return new HashSet<>(nodeIdentifierList);
+        return new HashSet<>(edgeNodeList);
     }
 
-    public synchronized void addNode(NodeIdentifier node)
+    public synchronized void addNode(EdgeNode node)
     {
-        nodeIdentifierList.add(node);
+        edgeNodeList.add(node);
     }
 
-    public synchronized void removeNode(NodeIdentifier node)
+    public synchronized void removeNode(EdgeNode node)
     {
-        nodeIdentifierList.remove(node);
+        edgeNodeList.remove(node);
     }
 /*
         public NodeIdentifier getByName(String name){
