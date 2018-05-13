@@ -167,7 +167,7 @@ public class EdgeNode
         return Client.create(config);
     }
 
-    private long computeMidnightMillis()
+    public long computeTimestamp()
     {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -175,7 +175,7 @@ public class EdgeNode
         cal.set(Calendar.SECOND, 0);
         cal.set(Calendar.MILLISECOND, 0);
 
-        return cal.getTimeInMillis();
+        return System.currentTimeMillis() - cal.getTimeInMillis();
     }
 
     public synchronized void addMeasurement(Measurement m)
@@ -189,8 +189,8 @@ public class EdgeNode
             for (int i = 0; i < 20; i++)
                 mean += queue.peek().getValue();
             mean /= 40;
-            System.out.println("MEAN: "+mean+" at "+computeMidnightMillis());
-            sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeMidnightMillis()).build());
+            System.out.println("MEAN: "+mean+" at "+ computeTimestamp());
+            sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
         }
     }
 
@@ -208,9 +208,7 @@ public class EdgeNode
             System.out.println("Coord lost");
             //elezione nuovo coordinatore
         }
-
         channel.shutdown();
-
     }
 
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
@@ -219,7 +217,7 @@ public class EdgeNode
         {
             this.setIsCoordinator(true);
             this.CoordURI = this.nodeURI+":"+this.nodesPort;
-            this.coordinatorThread = new CoordinatorThread();
+            this.coordinatorThread = new CoordinatorThread(this);
             Thread t = new Thread(this.coordinatorThread);
             t.start();
             System.out.println(this.getId() + " - I am the coordinator");

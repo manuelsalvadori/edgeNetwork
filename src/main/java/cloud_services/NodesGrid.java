@@ -1,4 +1,6 @@
-package edge_nodes;
+package cloud_services;
+
+import edge_nodes.EdgeNode;
 
 import java.util.HashSet;
 import java.util.Set;
