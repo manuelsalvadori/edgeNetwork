@@ -2,6 +2,7 @@ package cloud_services;
 
 import com.google.gson.Gson;
 import edge_nodes.EdgeNode;
+import server_containers.NodesGrid;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
