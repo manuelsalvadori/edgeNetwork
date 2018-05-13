@@ -20,8 +20,7 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
     @Override
     public void sendMeasure(SensorGRPCOuterClass.Measure request, StreamObserver<Empty> responseObserver)
     {
-        Measurement m = null; //basta json invece di protobuf?
-        ObjectMapper mapper = new ObjectMapper();
+        Measurement m = null;
         try
         {
             m = new Gson().fromJson(request.getM(), Measurement.class);
@@ -29,7 +28,7 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
         catch (Exception e) { e.printStackTrace(); }
         if(m != null)
             System.out.println("id: "+m.getId()+" value: "+m.getValue() + " time: "+m.getTimestamp());
-
+        node.addMeasurement(m);
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }

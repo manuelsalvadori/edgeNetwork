@@ -1,0 +1,27 @@
+syntax = "proto3";
+package edge_nodes;
+
+import "google/protobuf/empty.proto";
+
+message Coordinator
+{
+    bool isCoord = 1;
+}
+
+message NodeURI
+{
+    string node = 1;
+}
+
+message Statistic
+{
+    string nodeID = 1;
+    double value = 2;
+    int64 timestamp = 3;
+}
+
+service NodeGRPC
+{
+    rpc reportNewNode(NodeURI) returns (Coordinator);
+    rpc sendStatistic(Statistic) returns(Statistic);
+}

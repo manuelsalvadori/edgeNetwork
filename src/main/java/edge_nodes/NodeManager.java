@@ -30,12 +30,19 @@ public class NodeManager
 
         try
         {
-            Server server = ServerBuilder.forPort(sensorPort)
+            Server sensorserver = ServerBuilder.forPort(sensorPort)
                     .addService(new SensorGRPCImpl(node))
                     .build();
-            server.start();
+            sensorserver.start();
+
+            Server nodeserver = ServerBuilder.forPort(nodePort)
+                    .addService(new NodeGRPCImpl(node))
+                    .build();
+            nodeserver.start();
+
             System.out.println("Node "+ node.getId() +" started!");
-            server.awaitTermination();
+            sensorserver.awaitTermination();
+            nodeserver.awaitTermination();
         }
         catch (Exception e) {e.printStackTrace();}
 

@@ -35,15 +35,5 @@ public class NodesGrid
     {
         edgeNodeList.remove(node);
     }
-/*
-        public NodeIdentifier getByName(String name){
-
-            List<NodeIdentifier> usersCopy = getUserslist();
-
-            for(NodeIdentifier u: usersCopy)
-                if(u.getName().toLowerCase().equals(name.toLowerCase()))
-                    return u;
-            return null;
-        }*/
 
 }
