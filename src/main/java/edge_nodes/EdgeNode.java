@@ -211,6 +211,7 @@ public class EdgeNode
         channel.shutdown();
     }
 
+// DA SISTEMARE - rpc in parallelo!!
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
     {
         if(nodeList.size() == 0)

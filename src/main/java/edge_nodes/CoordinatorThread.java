@@ -29,7 +29,8 @@ public class CoordinatorThread implements Runnable
     public synchronized Statistic addStatistic(Statistic s)
     {
         if(!statsBuffer.containsKey(s.getNodeID()))
-            statsBuffer.put(s.getNodeID(),new PriorityQueue<Statistic>(20,(Statistic s1, Statistic s2) -> { return Long.compare(s1.getTimestamp(),s2.getTimestamp()); }));
+            statsBuffer.put(s.getNodeID(),new PriorityQueue<Statistic>(20,
+                    (Statistic s1, Statistic s2) -> { return Long.compare(s1.getTimestamp(),s2.getTimestamp()); }));
 
         statsBuffer.get(s.getNodeID()).offer(s);
         return lastGlobalStat;
@@ -62,9 +63,7 @@ public class CoordinatorThread implements Runnable
             }
             value /= buffer.get(nodeId).size();
 
-            Statistic s = Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build();
-
-            ls.add(s);
+            ls.add(Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build());
         }
 
         lastLocalStats = ls;

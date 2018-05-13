@@ -1,10 +1,22 @@
 package analyst_application;
 
+import com.google.common.reflect.TypeToken;
+import com.google.gson.Gson;
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientHandlerException;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
+import com.sun.jersey.api.client.config.ClientConfig;
+import com.sun.jersey.api.client.config.DefaultClientConfig;
+import com.sun.jersey.api.json.JSONConfiguration;
+import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
+
+import java.io.IOException;
+import java.util.List;
 import java.util.Scanner;
 
 public class AnalystApplication
 {
-
     public static void main(String[] args)
     {
         Scanner scan = new Scanner(System.in);
@@ -43,7 +55,35 @@ public class AnalystApplication
 
     private static void getCityState()
     {
+        ClientResponse response;
+        try
+        {
+            WebResource webResource = getClient().resource( "http://localhost:2018/getStatistics/cityState");
+            response = webResource.accept("application/json").get(ClientResponse.class);
+        }
+        catch(ClientHandlerException ce)
+        {
+            System.out.println("Analyst Application - Server cloud connection refused");
+            return;
+        }
 
+        switch (response.getStatus())
+        {
+            case 200:
+                String json = response.getEntity(String.class);
+                List<String> nodes = new Gson().fromJson(json, new TypeToken<List<String>>(){}.getType());
+                nodes.forEach(System.out::println);
+                break;
+
+            default:
+                System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
+        }
+        System.out.println("Press any key to continue...");
+        try
+        {
+            System.in.read();
+        }
+        catch (IOException e) { e.printStackTrace(); }
     }
 
     private static void getNodeStats()
@@ -64,6 +104,15 @@ public class AnalystApplication
     private static void getStandardDeviationGlobal()
     {
 
+    }
+
+    private static Client getClient()
+    {
+        ClientConfig config = new DefaultClientConfig();
+        config.getClasses().add(JacksonJaxbJsonProvider.class);
+        config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
+        System.out.println("Analyst Application - REST client configurated");
+        return Client.create(config);
     }
 
 }
