@@ -37,6 +37,7 @@ public class EdgeNode
     private PriorityQueue<Measurement> queue;
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
+    private volatile int counter;
 
     public EdgeNode(String id, String serverURI, int sensorsPort, int nodesPort)
     {
@@ -91,6 +92,11 @@ public class EdgeNode
     public void setIsCoordinator(boolean isCoordinator)
     {
         this.isCoordinator = isCoordinator;
+    }
+
+    public void setCoordURI(String uri)
+    {
+        this.CoordURI = uri;
     }
 
     public String getServerURI()
@@ -214,7 +220,8 @@ public class EdgeNode
 // DA SISTEMARE - rpc in parallelo!!
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
     {
-        if(nodeList.size() == 0)
+        int size = nodeList.size();
+        if(size == 0)
         {
             this.setIsCoordinator(true);
             this.CoordURI = this.nodeURI+":"+this.nodesPort;
@@ -225,52 +232,19 @@ public class EdgeNode
             return;
         }
 
+        // lancio parallelo di gRPC
+        System.out.println(this.getId() + " - Retrieving coordinator...");
+
+        counter = size;
+        int i = 0;
         for(EdgeNode node: nodeList)
         {
-            final ManagedChannel channel = ManagedChannelBuilder.forTarget(node.nodeURI+":"+node.getNodesPort()).usePlaintext(true).build();
-
-            NodeGRPCGrpc.NodeGRPCStub stub = NodeGRPCGrpc.newStub(channel);
-
-            NodeGRPCOuterClass.NodeURI uri = NodeGRPCOuterClass.NodeURI.newBuilder().setNode(this.nodeURI+":"+this.nodesPort).build();
-            try
-            {
-                stub.reportNewNode(uri, new StreamObserver<NodeGRPCOuterClass.Coordinator>()
-                {
-                    @Override
-                    public void onNext(NodeGRPCOuterClass.Coordinator coordinator)
-                    {
-                        if (coordinator.getIsCoord())
-                            CoordURI = node.nodeURI + ":" + node.getNodesPort();
-                        else
-                            localNodesList.add(node.nodeURI + ":" + node.getNodesPort());
-                    }
-
-                    @Override
-                    public void onError(Throwable throwable)
-                    {
-                        System.out.println("Error! " + throwable.getMessage());
-                    }
-
-                    @Override
-                    public void onCompleted()
-                    {
-                        channel.shutdownNow();
-                    }
-                });
-            }
-            catch (StatusRuntimeException e)
-            {
-                localNodesList.remove(node.nodeURI + ":" + node.getNodesPort());
-                e.printStackTrace();
-            }
-
-            try
-            {
-                channel.awaitTermination(2, TimeUnit.SECONDS);
-            }
-            catch (InterruptedException e) {e.printStackTrace();}
-
+            System.out.println("Lancio rpc "+(++i));
+            new Thread(new ParallelGrpcCaller(this, node.nodeURI+":"+node.getNodesPort(), i)).start();
         }
+
+        // aspetto che tutte le chiamate ritornino
+        while(counter > 0);
 
         System.out.println(this.getId() + " - My coordinator is "+CoordURI);
     }
@@ -278,6 +252,16 @@ public class EdgeNode
     public synchronized void addNodeToLocalList(String uri)
     {
         localNodesList.add(uri);
+    }
+
+    public synchronized void removeNodeFromLocalList(String uri)
+    {
+        localNodesList.remove(uri);
+    }
+
+    public synchronized void decCounter()
+    {
+        this.counter--;
     }
 
 }

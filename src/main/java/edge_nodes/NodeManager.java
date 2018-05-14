@@ -16,8 +16,9 @@ public class NodeManager
         System.out.println("Insert nodes port:");
         int nodePort = io.nextInt();
         io.nextLine();
-        System.out.println("Insert server address:");
-        String serverURI = io.nextLine();
+        //System.out.println("Insert server address:");
+        //String serverURI = io.nextLine();
+        String serverURI = "http://localhost:2018";
         System.out.println("Insert nodes id:");
         String nodeId = io.nextLine();
 
