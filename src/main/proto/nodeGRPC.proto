@@ -10,7 +10,8 @@ message Coordinator
 
 message NodeURI
 {
-    string node = 1;
+    string nodeID = 1;
+    string nodeURI = 2;
 }
 
 message Statistic

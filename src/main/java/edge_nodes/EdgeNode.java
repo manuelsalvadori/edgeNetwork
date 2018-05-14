@@ -12,16 +12,11 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
-import io.grpc.stub.StreamObserver;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 import simulation.Measurement;
 import edge_nodes.NodeGRPCOuterClass.Statistic;
 
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.PriorityQueue;
-import java.util.Random;
-import java.util.concurrent.TimeUnit;
+import java.util.*;
 
 public class EdgeNode
 {
@@ -33,11 +28,11 @@ public class EdgeNode
     private int x;
     private int y;
     private String serverURI;
-    private HashSet<String> localNodesList;
+    private HashMap<String,String> localNodesList;
     private PriorityQueue<Measurement> queue;
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
-    private volatile int counter;
+    private volatile int grpcCounter;
 
     public EdgeNode(String id, String serverURI, int sensorsPort, int nodesPort)
     {
@@ -104,12 +99,12 @@ public class EdgeNode
         return serverURI;
     }
 
-    public HashSet<String> getLocalNodesList()
+    public HashMap<String,String> getLocalNodesList()
     {
         return localNodesList;
     }
 
-    public void setLocalNodesList(HashSet<String> localNodesList)
+    public void setLocalNodesList(HashMap<String,String> localNodesList)
     {
         this.localNodesList = localNodesList;
     }
@@ -143,7 +138,7 @@ public class EdgeNode
                 case 200:
                     String json = response.getEntity(String.class);
                     this.queue = new PriorityQueue<>(40);
-                    this.localNodesList = new HashSet<>();
+                    this.localNodesList = new HashMap<>();
                     reportToEdgeNetwork(new Gson().fromJson(json, new TypeToken<HashSet<EdgeNode>>(){}.getType()));
                     System.out.println(this.getId() + " - Successfully added to the cloud");
                     return true;
@@ -208,19 +203,21 @@ public class EdgeNode
         try
         {
             stub.sendStatistic(s);
+            // salvo la stat lastGlobaStats
         }
         catch(StatusRuntimeException e)
         {
-            System.out.println("Coord lost");
+            System.out.println("Coordinator offline - starting new election...");
             //elezione nuovo coordinatore
         }
         channel.shutdown();
     }
 
-// DA SISTEMARE - rpc in parallelo!!
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
     {
         int size = nodeList.size();
+
+        // se la lista dei nodi ricevuta è vuota setto il nodo this come coordinatore
         if(size == 0)
         {
             this.setIsCoordinator(true);
@@ -235,33 +232,34 @@ public class EdgeNode
         // lancio parallelo di gRPC
         System.out.println(this.getId() + " - Retrieving coordinator...");
 
-        counter = size;
+        grpcCounter = size;
         int i = 0;
         for(EdgeNode node: nodeList)
         {
-            System.out.println("Lancio rpc "+(++i));
-            new Thread(new ParallelGrpcCaller(this, node.nodeURI+":"+node.getNodesPort(), i)).start();
+            System.out.println("    gRPC call "+(++i)+": Asking to node "+ node.getId()+"...");
+            new Thread(new ParallelGrpcCoordFinder(this, node.getId(),node.nodeURI+":"+node.getNodesPort(), i)).start();
         }
 
-        // aspetto che tutte le chiamate ritornino
-        while(counter > 0);
+        // aspetto che tutte le chiamate gRPC ritornino
+        while(grpcCounter > 0);
 
+        // stampo il coordinatore ricevuto
         System.out.println(this.getId() + " - My coordinator is "+CoordURI);
     }
 
-    public synchronized void addNodeToLocalList(String uri)
+    public synchronized void addNodeToLocalList(String id, String uri)
     {
-        localNodesList.add(uri);
+        localNodesList.put(id, uri);
     }
 
-    public synchronized void removeNodeFromLocalList(String uri)
+    public synchronized void removeNodeFromLocalList(String id)
     {
-        localNodesList.remove(uri);
+        localNodesList.remove(id);
     }
 
     public synchronized void decCounter()
     {
-        this.counter--;
+        this.grpcCounter--;
     }
 
 }
