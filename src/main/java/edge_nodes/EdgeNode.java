@@ -17,6 +17,7 @@ import simulation.Measurement;
 import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class EdgeNode
 {
@@ -30,6 +31,7 @@ public class EdgeNode
     private String serverURI;
     private HashMap<String,String> localNodesList;
     private PriorityQueue<Measurement> queue;
+    private Statistic lastGlobalStat;
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
     private volatile int grpcCounter;
@@ -123,7 +125,7 @@ public class EdgeNode
             ClientResponse response;
             try
             {
-                WebResource webResource = restClient.resource(this.serverURI + "/NodeInit/");
+                WebResource webResource = restClient.resource(this.serverURI + "/Node/NodeInit/");
                 String json = new Gson().toJson(this);
                 response = webResource.type("application/json").post(ClientResponse.class, json);
             }
@@ -159,6 +161,35 @@ public class EdgeNode
         return false;
     }
 
+    public void removeFromCloud()
+    {
+        Client restClient = restClientInit();
+
+            ClientResponse response;
+            try
+            {
+                WebResource webResource = restClient.resource(this.serverURI + "/Node/RemoveNode/");
+                String json = new Gson().toJson(this.id);
+                response = webResource.type("application/json").post(ClientResponse.class, json);
+            }
+            catch (ClientHandlerException ce)
+            {
+                System.out.println(this.getId() + " - Server cloud connection refused");
+                return;
+            }
+
+            if(response.getStatus() == 200)
+            {
+                System.out.println(this.getId() + " - Successfully removed to the cloud");
+                return;
+            }
+
+            System.out.println(this.getId() + " - ERROR Failed node init: HTTP error code: " + response.getStatus());
+
+
+        }
+
+
     private Client restClientInit()
     {
         ClientConfig config = new DefaultClientConfig();
@@ -182,6 +213,9 @@ public class EdgeNode
     public synchronized void addMeasurement(Measurement m)
     {
         queue.offer(m);
+
+        // alla 40sima misurazione faccio la media tramite
+        // sliding window e la mando al coordinatore
         if(queue.size() == 40)
         {
             double mean = 0;
@@ -189,8 +223,8 @@ public class EdgeNode
                 mean += queue.poll().getValue();
             for (int i = 0; i < 20; i++)
                 mean += queue.peek().getValue();
-            mean /= 40;
-            System.out.println("MEAN: "+mean+" at "+ computeTimestamp());
+            mean /= 40.0;
+            System.out.println(this.getId() + " - localStat: "+mean+" at "+ computeTimestamp());
             sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
         }
     }
@@ -202,15 +236,26 @@ public class EdgeNode
 
         try
         {
-            stub.sendStatistic(s);
-            // salvo la stat lastGlobaStats
+            // salvo la stat lastGlobaStat
+            lastGlobalStat = stub.sendStatistic(s);
+            System.out.println(this.getId() + " - lastGlobalStat: "+lastGlobalStat.getValue()+" at "+ lastGlobalStat.getTimestamp());
         }
         catch(StatusRuntimeException e)
         {
             System.out.println("Coordinator offline - starting new election...");
-            //elezione nuovo coordinatore
+            newElection();
         }
         channel.shutdown();
+    }
+
+    public void newElection()
+    {
+
+        Map<String,String> eligibles = localNodesList.entrySet().stream()
+                .filter(map -> map.getKey().compareTo(this.id) > 0)
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
+        System.out.println(eligibles);
     }
 
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
@@ -236,7 +281,7 @@ public class EdgeNode
         int i = 0;
         for(EdgeNode node: nodeList)
         {
-            System.out.println("    gRPC call "+(++i)+": Asking to node "+ node.getId()+"...");
+            System.out.println("    - gRPC call "+(++i)+": Asking to node "+ node.getId()+"...");
             new Thread(new ParallelGrpcCoordFinder(this, node.getId(),node.nodeURI+":"+node.getNodesPort(), i)).start();
         }
 

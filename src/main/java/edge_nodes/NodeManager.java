@@ -29,23 +29,39 @@ public class NodeManager
             return;
         }
 
+        Server sensorserver = null, nodeserver = null;
+
         try
         {
-            Server sensorserver = ServerBuilder.forPort(sensorPort)
+            sensorserver = ServerBuilder.forPort(sensorPort)
                     .addService(new SensorGRPCImpl(node))
                     .build();
             sensorserver.start();
 
-            Server nodeserver = ServerBuilder.forPort(nodePort)
+            nodeserver = ServerBuilder.forPort(nodePort)
                     .addService(new NodeGRPCImpl(node))
                     .build();
             nodeserver.start();
 
             System.out.println("Node "+ node.getId() +" started!");
-            sensorserver.awaitTermination();
-            nodeserver.awaitTermination();
+
         }
         catch (Exception e) {e.printStackTrace();}
+
+        System.out.println("Enter exit to shutdown this node in any time");
+        String exit = "";
+        while(!exit.equals("exit"))
+        {
+            exit = io.nextLine();
+        }
+
+        sensorserver.shutdown();
+        nodeserver.shutdown();
+
+        System.out.println("Node terminated");
+        while(!(sensorserver.isTerminated() && nodeserver.isTerminated()));
+        node.removeFromCloud();
+        System.exit(0);
 
     }
 }

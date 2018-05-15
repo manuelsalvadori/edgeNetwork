@@ -62,7 +62,7 @@ public class CoordinatorSender implements Runnable
         {
             case 200:
                 String json = response.getEntity(String.class);
-                System.out.println("COORDINATOR - Sending statistics successful" );
+                System.out.println("COORDINATOR - Sending statistics to server successful" );
                 break;
 
             default:

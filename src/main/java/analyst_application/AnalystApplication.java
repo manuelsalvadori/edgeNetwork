@@ -30,24 +30,25 @@ public class AnalystApplication
             System.out.println("Press 5 to get standard deviation and mean from global statistics");
             System.out.println("Press any other key to exit");
 
-            switch(scan.nextInt())
+            switch(scan.nextLine())
             {
-                case 1:
+                case "1":
                     getCityState();
                     break;
-                case 2:
+                case "2":
                     getNodeStats();
                     break;
-                case 3:
+                case "3":
                     getGlobalStats();
                     break;
-                case 4:
+                case "4":
                     getStandardDeviationNode();
                     break;
-                case 5:
+                case "5":
                     getStandardDeviationGlobal();
                     break;
                 default:
+                    System.out.println("Exit successful");
                     System.exit(0);
             }
         }
@@ -111,7 +112,6 @@ public class AnalystApplication
         ClientConfig config = new DefaultClientConfig();
         config.getClasses().add(JacksonJaxbJsonProvider.class);
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        System.out.println("Analyst Application - REST client configurated");
         return Client.create(config);
     }
 

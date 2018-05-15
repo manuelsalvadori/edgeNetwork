@@ -6,10 +6,10 @@ import server_containers.NodesGrid;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-
-@Path("NodeInit")
+@Path("Node")
 public class NodeService
 {
+    @Path("NodeInit")
     @POST
     @Produces("application/json")
     @Consumes("application/json")
@@ -86,5 +86,19 @@ public class NodeService
     private boolean checkDistance(int x1, int y1, int x2, int y2)
     {
         return Math.abs(x1-x2) + Math.abs(y1-y2) > 20;
+    }
+
+    @Path("RemoveNode")
+    @POST
+    @Consumes("application/json")
+    public Response removeNode(String nodeJson)
+    {
+        Gson g = new Gson();
+        String node = g.fromJson(nodeJson, String.class);
+
+        if(NodesGrid.getInstance().removeNode(node))
+            return Response.ok().build();
+
+        return Response.status(400).build();
     }
 }

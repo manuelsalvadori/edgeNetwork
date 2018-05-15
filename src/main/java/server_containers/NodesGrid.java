@@ -33,9 +33,12 @@ public class NodesGrid
         edgeNodeList.add(node);
     }
 
-    public synchronized void removeNode(EdgeNode node)
+    public synchronized boolean removeNode(String node)
     {
-        edgeNodeList.remove(node);
+        for(EdgeNode n: edgeNodeList)
+            if(n.getId().equals(node))
+                return edgeNodeList.remove(n);
+        return false;
     }
 
 }

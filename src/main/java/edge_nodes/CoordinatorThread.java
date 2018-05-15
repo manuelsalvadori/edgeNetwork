@@ -50,10 +50,12 @@ public class CoordinatorThread implements Runnable
     {
         List<Statistic> ls = new ArrayList<>();
         HashMap<String, PriorityQueue<Statistic>> buffer = getStatsBuffer();
+        clearStats();
 
         if(buffer.size() == 0)
             return null;
 
+        // calcolo le statistiche locali di ogni nodo
         for(String nodeId: buffer.keySet())
         {
             double value = 0.0;
@@ -63,11 +65,14 @@ public class CoordinatorThread implements Runnable
             }
             value /= buffer.get(nodeId).size();
 
-            ls.add(Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build());
+            Statistic s = Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build();
+            System.out.println("COORDINATOR - local stat: "+s.getNodeID()+" "+value+" at " + s.getTimestamp());
+            ls.add(s);
         }
 
         lastLocalStats = ls;
 
+        // calcolo la statistica globale
         double value = 0;
         for(Statistic s: ls)
         {
@@ -77,6 +82,8 @@ public class CoordinatorThread implements Runnable
 
         Statistic s = Statistic.newBuilder().setNodeID("Coord").setValue(value).setTimestamp(node.computeTimestamp()).build();
         lastGlobalStat = s;
+        System.out.println("COORDINATOR - global stat: "+s.getNodeID()+" "+value+" at " + s.getTimestamp());
+
         ls.add(s);
 
         return ls;

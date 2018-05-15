@@ -42,10 +42,9 @@ public class ParallelGrpcCoordFinder implements Runnable
         {
             node.decCounter();
             node.removeNodeFromLocalList(targetID);
-            e.printStackTrace();
         }
 
-        System.out.println("    gRPC call"+i+" to "+targetID+" completed");
+        System.out.println("    - gRPC call "+i+" to "+targetID+" completed");
         channel.shutdown();
     }
 }
