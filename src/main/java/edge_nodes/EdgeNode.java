@@ -236,7 +236,7 @@ public class EdgeNode
 
         try
         {
-            // salvo la stat lastGlobaStat
+            // salvo la stat lastGlobalStat
             lastGlobalStat = stub.sendStatistic(s);
             System.out.println(this.getId() + " - lastGlobalStat: "+lastGlobalStat.getValue()+" at "+ lastGlobalStat.getTimestamp());
         }
@@ -250,12 +250,36 @@ public class EdgeNode
 
     public void newElection()
     {
-
-        Map<String,String> eligibles = localNodesList.entrySet().stream()
+        // filtro la mappa dei nodi conosciuti ottenendo quelli con ID maggiore al mio
+        Map<String,String> eligible = localNodesList.entrySet().stream()
                 .filter(map -> map.getKey().compareTo(this.id) > 0)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        System.out.println(eligibles);
+        // se la mappa è vuota setto il nodo this come coordinatore
+        if(eligible.size() == 0)
+        {
+            this.setIsCoordinator(true);
+            this.CoordURI = this.nodeURI+":"+this.nodesPort;
+            this.coordinatorThread = new CoordinatorThread(this);
+            new Thread(this.coordinatorThread).start();
+            System.out.println(this.getId() + " - I am the new coordinator");
+
+            //comunico in broadcast la mia elezione
+            reportElection();
+            return;
+        }
+        // per ogni nodo lancio l'rpc di elezione
+        eligible.values().forEach(v -> electionGrpc(v));
+    }
+
+    public void electionGrpc(String uri)
+    {
+        new Thread(new ParallelGrpcNewElection(uri, this));
+    }
+
+    public void reportElection()
+    {
+        new Thread(new ParallelGrpcReportCoord(this));
     }
 
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
@@ -268,15 +292,14 @@ public class EdgeNode
             this.setIsCoordinator(true);
             this.CoordURI = this.nodeURI+":"+this.nodesPort;
             this.coordinatorThread = new CoordinatorThread(this);
-            Thread t = new Thread(this.coordinatorThread);
-            t.start();
+            new Thread(this.coordinatorThread).start();
             System.out.println(this.getId() + " - I am the coordinator");
             return;
         }
 
-        // lancio parallelo di gRPC
         System.out.println(this.getId() + " - Retrieving coordinator...");
 
+        // lancio parallelo di gRPC
         grpcCounter = size;
         int i = 0;
         for(EdgeNode node: nodeList)
