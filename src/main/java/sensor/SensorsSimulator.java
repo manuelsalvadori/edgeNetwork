@@ -3,7 +3,7 @@ package sensor;
 public class SensorsSimulator
 {
     private static final String SERVER_URI =  "http://localhost:2018";
-    private static int n = 4;
+    private static int n = 6;
 
     public static void main(String[] args)
     {

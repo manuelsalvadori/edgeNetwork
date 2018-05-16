@@ -23,9 +23,7 @@ public class ParallelGrpcCoordFinder implements Runnable
     public void run()
     {
         final ManagedChannel channel = ManagedChannelBuilder.forTarget(targetURI).usePlaintext(true).build();
-
         NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
-
         NodeGRPCOuterClass.NodeURI uri = NodeGRPCOuterClass.NodeURI.newBuilder().setNodeID(node.getId()).setNodeURI(node.getNodeURI()+":"+node.getNodesPort()).build();
         try
         {

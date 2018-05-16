@@ -189,7 +189,6 @@ public class EdgeNode
 
         }
 
-
     private Client restClientInit()
     {
         ClientConfig config = new DefaultClientConfig();
@@ -216,14 +215,16 @@ public class EdgeNode
 
         // alla 40sima misurazione faccio la media tramite
         // sliding window e la mando al coordinatore
-        if(queue.size() == 40)
+
+        int bufferSize = 40;
+        if(queue.size() == bufferSize)
         {
             double mean = 0;
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < bufferSize/2; i++)
                 mean += queue.poll().getValue();
-            for (int i = 0; i < 20; i++)
+            for (int i = 0; i < bufferSize/2; i++)
                 mean += queue.peek().getValue();
-            mean /= 40.0;
+            mean /= (double)bufferSize;
             System.out.println(this.getId() + " - localStat: "+mean+" at "+ computeTimestamp());
             sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
         }
@@ -248,38 +249,46 @@ public class EdgeNode
         channel.shutdown();
     }
 
+    // per l'elezione uso l'algoritmo di Bully
     public void newElection()
     {
+        if(isCoordinator)
+            return;
+
         // filtro la mappa dei nodi conosciuti ottenendo quelli con ID maggiore al mio
         Map<String,String> eligible = localNodesList.entrySet().stream()
                 .filter(map -> map.getKey().compareTo(this.id) > 0)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         // se la mappa è vuota setto il nodo this come coordinatore
+        // e comunico in broadcast la mia elezione
         if(eligible.size() == 0)
         {
-            this.setIsCoordinator(true);
-            this.CoordURI = this.nodeURI+":"+this.nodesPort;
-            this.coordinatorThread = new CoordinatorThread(this);
-            new Thread(this.coordinatorThread).start();
-            System.out.println(this.getId() + " - I am the new coordinator");
-
-            //comunico in broadcast la mia elezione
-            reportElection();
+            setCoordinator();
+            localNodesList.keySet().forEach(v -> reportEndElection(v, localNodesList.get(v)));
             return;
         }
-        // per ogni nodo lancio l'rpc di elezione
-        eligible.values().forEach(v -> electionGrpc(v));
+        // per ogni nodo trovato lancio l'rpc di elezione
+        eligible.keySet().forEach(v -> electionGrpc(v, eligible.get(v)));
     }
 
-    public void electionGrpc(String uri)
+    private void setCoordinator()
     {
-        new Thread(new ParallelGrpcNewElection(uri, this));
+        this.setIsCoordinator(true);
+        this.CoordURI = this.nodeURI+":"+this.nodesPort;
+        this.coordinatorThread = new CoordinatorThread(this);
+        new Thread(this.coordinatorThread).start();
+        System.out.println(this.getId() + " - I am the new coordinator");
     }
 
-    public void reportElection()
+    public void electionGrpc(String id, String uri)
     {
-        new Thread(new ParallelGrpcReportCoord(this));
+        new Thread(new ParallelGrpcNewElection(id, uri, this)).start();
+    }
+
+    public void reportEndElection(String id, String uri)
+    {
+        new Thread(new ParallelGrpcReportCoord(id, uri,this)).start();
     }
 
     public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)

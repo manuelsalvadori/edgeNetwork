@@ -41,7 +41,7 @@ public class CoordinatorThread implements Runnable
         return new HashMap<>(statsBuffer);
     }
 
-    public synchronized void clearStats()
+    public synchronized void clearStatsBuffer()
     {
         statsBuffer.clear();
     }
@@ -50,7 +50,7 @@ public class CoordinatorThread implements Runnable
     {
         List<Statistic> ls = new ArrayList<>();
         HashMap<String, PriorityQueue<Statistic>> buffer = getStatsBuffer();
-        clearStats();
+        clearStatsBuffer();
 
         if(buffer.size() == 0)
             return null;

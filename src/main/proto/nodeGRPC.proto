@@ -23,6 +23,8 @@ message Statistic
 
 service NodeGRPC
 {
-    rpc reportNewNode(NodeURI) returns (Coordinator);
+    rpc reportNewNode(NodeURI) returns(Coordinator);
     rpc sendStatistic(Statistic) returns(Statistic);
+    rpc reportNewCoordinator(NodeURI) returns(google.protobuf.Empty);
+    rpc newElection(google.protobuf.Empty) returns(google.protobuf.Empty);
 }
