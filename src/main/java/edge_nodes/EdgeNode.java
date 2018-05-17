@@ -239,7 +239,10 @@ public class EdgeNode
         {
             // salvo la stat lastGlobalStat
             lastGlobalStat = stub.sendStatistic(s);
-            System.out.println(this.getId() + " - lastGlobalStat: "+lastGlobalStat.getValue()+" at "+ lastGlobalStat.getTimestamp());
+            if(lastGlobalStat.getTimestamp() != 0)
+                System.out.println(this.getId() + " - lastGlobalStat: "+lastGlobalStat.getValue()+" at "+ lastGlobalStat.getTimestamp());
+            else
+                System.out.println(this.getId() + " - No lastGlobalStat available yet");
         }
         catch(StatusRuntimeException e)
         {
@@ -256,7 +259,8 @@ public class EdgeNode
             return;
 
         // filtro la mappa dei nodi conosciuti ottenendo quelli con ID maggiore al mio
-        Map<String,String> eligible = localNodesList.entrySet().stream()
+        Map<String,String> eligible = localNodesList.entrySet()
+                .stream()
                 .filter(map -> map.getKey().compareTo(this.id) > 0)
                 .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -264,7 +268,7 @@ public class EdgeNode
         // e comunico in broadcast la mia elezione
         if(eligible.size() == 0)
         {
-            setCoordinator();
+            setMeAsCoordinator();
             localNodesList.keySet().forEach(v -> reportEndElection(v, localNodesList.get(v)));
             return;
         }
@@ -272,13 +276,19 @@ public class EdgeNode
         eligible.keySet().forEach(v -> electionGrpc(v, eligible.get(v)));
     }
 
-    private void setCoordinator()
+    private void setMeAsCoordinator()
     {
         this.setIsCoordinator(true);
         this.CoordURI = this.nodeURI+":"+this.nodesPort;
         this.coordinatorThread = new CoordinatorThread(this);
         new Thread(this.coordinatorThread).start();
         System.out.println(this.getId() + " - I am the new coordinator");
+    }
+
+    public void setCoordinator(String coordId, String coordUri)
+    {
+        this.CoordURI = coordUri;
+        System.out.println(this.getId() + " - My new coordinator is "+coordId);
     }
 
     public void electionGrpc(String id, String uri)

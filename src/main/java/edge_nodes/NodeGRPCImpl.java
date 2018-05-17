@@ -41,7 +41,7 @@ public class NodeGRPCImpl extends NodeGRPCGrpc.NodeGRPCImplBase
     @Override
     public void reportNewCoordinator(NodeURI request, StreamObserver<Empty> responseObserver)
     {
-        node.setCoordURI(request.getNodeURI());
+        node.setCoordinator(request.getNodeID(), request.getNodeURI());
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }

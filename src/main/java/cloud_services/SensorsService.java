@@ -17,7 +17,6 @@ public class SensorsService
     @Produces("application/json")
     public Response getClosestNode(@PathParam("x") int x, @PathParam("y") int y)
     {
-        System.out.println("x:"+x+" y:"+y);
         EdgeNode nid = retrieveNode(x,y);
 
         if(nid != null)

@@ -24,7 +24,6 @@ public class CoordinatorService
         try
         {
             CityStatistics.getInstance().addStats(stats);
-            System.out.println(CityStatistics.getInstance().getStats()); //debug
             return Response.ok().build();
         }
         catch (Exception e)

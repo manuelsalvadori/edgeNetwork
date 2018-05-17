@@ -48,12 +48,11 @@ public class NodeManager
         }
         catch (Exception e) {e.printStackTrace();}
 
-        System.out.println("Enter exit to shutdown this node in any time");
+        System.out.println("Enter 'x' in any time to shutdown this node");
         String exit = "";
-        while(!exit.equals("exit"))
-        {
+        while(!exit.equals("x"))
             exit = io.nextLine();
-        }
+
 
         sensorserver.shutdown();
         nodeserver.shutdown();
@@ -62,6 +61,5 @@ public class NodeManager
         while(!(sensorserver.isTerminated() && nodeserver.isTerminated()));
         node.removeFromCloud();
         System.exit(0);
-
     }
 }
