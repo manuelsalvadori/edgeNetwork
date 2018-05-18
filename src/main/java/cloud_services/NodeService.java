@@ -88,17 +88,13 @@ public class NodeService
         return Math.abs(x1-x2) + Math.abs(y1-y2) > 20;
     }
 
-    @Path("RemoveNode")
-    @POST
-    @Consumes("application/json")
-    public Response removeNode(String nodeJson)
+    @Path("RemoveNode/{id}")
+    @DELETE
+    public Response removeNode(@PathParam("id") String id)
     {
-        Gson g = new Gson();
-        String node = g.fromJson(nodeJson, String.class);
-
-        if(NodesGrid.getInstance().removeNode(node))
+        if(NodesGrid.getInstance().removeNode(id))
             return Response.ok().build();
 
-        return Response.status(400).build();
+        return Response.status(404).entity("No such node in the cloud").build();
     }
 }

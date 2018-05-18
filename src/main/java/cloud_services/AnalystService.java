@@ -82,17 +82,16 @@ public class AnalystService
         {
             try
             {
-                l = Stream.concat(l.stream(),CityStatistics.getInstance().getStats().get(id)
+                l = Stream.concat(l.stream(), CityStatistics.getInstance().getStats().get(id)
                         .stream().limit(n).map(s -> formatStats(s))).collect(Collectors.toList());
             }
             catch (NullPointerException npe)
             {
                 return Response.status(404).build();
             }
-            // la stringa head non è giusta
 
             if (l.size() - lenght < n)
-                l.add(lenght, id + " stats - There are available only " + (l.size() - lenght) + " statistics:");
+                l.add(lenght, id + " stats - Available only " + (l.size() - lenght) + " statistics:");
             else
                 l.add(lenght, id + " stats - Last " + n + " statistics:");
             lenght = l.size();
@@ -121,15 +120,37 @@ public class AnalystService
 
         String resp = "";
         if(l.length < n)
-            resp = id + " - Standard deviation: " + sd + " - (available only " + l.length + " statistics)";
+            resp = id + " - Standard deviation: " + sd + ", Mean: "+mean + " - (available only " + l.length + " statistics)";
         else
             resp = id + " - Standard deviation: " + sd + ", Mean: "+mean;
 
-        return Response.ok(new Gson().toJson(l)).build();
+        return Response.ok(new Gson().toJson(resp)).build();
     }
 
-    private double toValue(Statistic s)
+    @GET
+    @Path("node/globalsd/{n}")
+    @Produces("application/json")
+    public Response getGlobalStandardDeviation(@PathParam("n") int n)
     {
-        return s.getValue();
+        List<Double> l = new ArrayList<>();
+
+        for(String id: CityStatistics.getInstance().getStats().keySet())
+        {
+            try
+            {
+                l = Stream.concat(l.stream(), CityStatistics.getInstance().getStats().get(id)
+                        .stream().limit(n).map(Statistic::getValue)).collect(Collectors.toList());
+            }
+            catch (NullPointerException npe)
+            {
+                return Response.status(404).build();
+            }
+        }
+        double[] array = l.stream().mapToDouble(Double::doubleValue).toArray();
+
+        double sd = new StandardDeviation().evaluate(array);
+        double mean = new Mean().evaluate(array);
+
+        return Response.ok(new Gson().toJson("Global statistics - Standard deviation: " + sd + ", Mean: "+mean)).build();
     }
 }

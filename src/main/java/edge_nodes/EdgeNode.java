@@ -168,9 +168,8 @@ public class EdgeNode
             ClientResponse response;
             try
             {
-                WebResource webResource = restClient.resource(this.serverURI + "/Node/RemoveNode/");
-                String json = new Gson().toJson(this.id);
-                response = webResource.type("application/json").post(ClientResponse.class, json);
+                WebResource webResource = restClient.resource(this.serverURI + "/Node/RemoveNode/" + this.id + "/");
+                response = webResource.delete(ClientResponse.class);
             }
             catch (ClientHandlerException ce)
             {
@@ -178,15 +177,17 @@ public class EdgeNode
                 return;
             }
 
-            if(response.getStatus() == 200)
+            switch(response.getStatus())
             {
-                System.out.println(this.getId() + " - Successfully removed to the cloud");
-                return;
+                case 200:
+                    System.out.println(this.getId() + " - Successfully removed to the cloud");
+                    return;
+                case 404:
+                    System.out.println(this.getId() + " - " + response.getEntity(String.class));
+                    return;
+                default:
+                    System.out.println(this.getId() + " - ERROR Failed node init: HTTP error code: " + response.getStatus());
             }
-
-            System.out.println(this.getId() + " - ERROR Failed node init: HTTP error code: " + response.getStatus());
-
-
         }
 
     private Client restClientInit()

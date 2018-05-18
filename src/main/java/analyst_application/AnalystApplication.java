@@ -79,12 +79,8 @@ public class AnalystApplication
             default:
                 System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
         }
-        System.out.println("Press any key to continue...");
-        try
-        {
-            System.in.read();
-        }
-        catch (IOException e) { e.printStackTrace(); }
+        System.out.println("Press enter to continue...");
+        new Scanner(System.in).nextLine();
     }
 
     private static void getNodeStats()
@@ -161,12 +157,8 @@ public class AnalystApplication
             default:
                 System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
         }
-        System.out.println("Press any key to continue...");
-        try
-        {
-            System.in.read();
-        }
-        catch (IOException e) { e.printStackTrace(); }
+        System.out.println("Press enter to continue...");
+        scan.nextLine();
     }
 
     private static void getStandardDeviationNode()
@@ -205,17 +197,36 @@ public class AnalystApplication
             default:
                 System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
         }
-        System.out.println("Press any key to continue...");
-        try
-        {
-            System.in.read();
-        }
-        catch (IOException e) { e.printStackTrace(); }
+        System.out.println("Press enter to continue...");
+        scan.nextLine();
     }
 
     private static void getStandardDeviationGlobal()
     {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("How many global statistics? ");
+        int n = scan.nextInt();
+        scan.nextLine();
 
+        ClientResponse response;
+        try
+        {
+            WebResource webResource = getClient().resource( "http://localhost:2018/getStatistics/node/globalsd/"+n);
+            response = webResource.accept("application/json").get(ClientResponse.class);
+        }
+        catch(ClientHandlerException ce)
+        {
+            System.out.println("Analyst Application - Server cloud connection refused");
+            return;
+        }
+
+        if(response.getStatus() == 200)
+            System.out.println(new Gson().fromJson(response.getEntity(String.class), String.class));
+        else
+            System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
+
+        System.out.println("Press enter to continue...");
+        scan.nextLine();
     }
 
     private static Client getClient()
