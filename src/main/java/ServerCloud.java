@@ -18,7 +18,7 @@ public class ServerCloud
 
         System.out.println("Cloud server started on: " + URI);
 
-        System.out.println("Hit return to stop...");
+        System.out.println("Press return to stop...");
         System.in.read();
         server.stop(0);
         System.out.println("Server stopped");

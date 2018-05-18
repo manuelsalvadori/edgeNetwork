@@ -15,8 +15,10 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Path("getStatistics")
 public class AnalystService
@@ -73,22 +75,28 @@ public class AnalystService
     @Produces("application/json")
     public Response getGlobalStats(@PathParam("n") int n)
     {
-        List<String> l = null;
-        try
-        {
-            l = CityStatistics.getInstance().getStats().get("Coord")
-                    .stream().limit(n).map(s -> formatStats(s)).collect(Collectors.toList());
-        }
-        catch (NullPointerException npe)
-        {
-            return Response.status(404).build();
-        }
+        List<String> l = new ArrayList<>();
 
-        if(l.size() < n)
-            l.add(0, "Global stats - There are available only " + l.size() + " statistics:");
-        else
-            l.add(0, "Global stats - Last " + n + " statistics:");
+        int lenght = 0;
+        for(String id: CityStatistics.getInstance().getStats().keySet())
+        {
+            try
+            {
+                l = Stream.concat(l.stream(),CityStatistics.getInstance().getStats().get(id)
+                        .stream().limit(n).map(s -> formatStats(s))).collect(Collectors.toList());
+            }
+            catch (NullPointerException npe)
+            {
+                return Response.status(404).build();
+            }
+            // la stringa head non è giusta
 
+            if (l.size() - lenght < n)
+                l.add(lenght, id + " stats - There are available only " + (l.size() - lenght) + " statistics:");
+            else
+                l.add(lenght, id + " stats - Last " + n + " statistics:");
+            lenght = l.size();
+        }
         return Response.ok(new Gson().toJson(l)).build();
     }
 

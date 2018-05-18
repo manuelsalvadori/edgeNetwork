@@ -171,7 +171,46 @@ public class AnalystApplication
 
     private static void getStandardDeviationNode()
     {
+        Scanner scan = new Scanner(System.in);
+        System.out.println("Specify a node id: ");
+        String nodeid = scan.nextLine();
+        System.out.println("How many statistics? ");
+        int n = scan.nextInt();
+        scan.nextLine();
 
+        ClientResponse response;
+        try
+        {
+            WebResource webResource = getClient().resource( "http://localhost:2018/getStatistics/node/sd/"+nodeid+"/"+n);
+            response = webResource.accept("application/json").get(ClientResponse.class);
+        }
+        catch(ClientHandlerException ce)
+        {
+            System.out.println("Analyst Application - Server cloud connection refused");
+            return;
+        }
+
+        switch (response.getStatus())
+        {
+            case 200:
+                String json = response.getEntity(String.class);
+                String stats = new Gson().fromJson(json, String.class);
+                System.out.println(stats);
+                break;
+
+            case 404:
+                System.out.println("Node not found: bad ID");
+                break;
+
+            default:
+                System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
+        }
+        System.out.println("Press any key to continue...");
+        try
+        {
+            System.in.read();
+        }
+        catch (IOException e) { e.printStackTrace(); }
     }
 
     private static void getStandardDeviationGlobal()
