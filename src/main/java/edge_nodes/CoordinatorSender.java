@@ -61,7 +61,6 @@ public class CoordinatorSender implements Runnable
         switch (response.getStatus())
         {
             case 200:
-                String json = response.getEntity(String.class);
                 System.out.println("COORDINATOR - Sending statistics to server successful" );
                 break;
 

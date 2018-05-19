@@ -1,16 +1,13 @@
 package edge_nodes;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.PriorityQueue;
+import java.util.*;
+
 import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 public class CoordinatorThread implements Runnable
 {
     private EdgeNode node;
     private HashMap<String,PriorityQueue<Statistic>> statsBuffer;
-    private volatile List<Statistic> lastLocalStats;
     private volatile Statistic lastGlobalStat;
 
     public CoordinatorThread(EdgeNode node)
@@ -29,8 +26,7 @@ public class CoordinatorThread implements Runnable
     public synchronized Statistic addStatistic(Statistic s)
     {
         if(!statsBuffer.containsKey(s.getNodeID()))
-            statsBuffer.put(s.getNodeID(),new PriorityQueue<Statistic>(20,
-                    (Statistic s1, Statistic s2) -> { return Long.compare(s1.getTimestamp(),s2.getTimestamp()); }));
+            statsBuffer.put(s.getNodeID(),new PriorityQueue<>(20, Comparator.comparingLong(Statistic::getTimestamp)));
 
         statsBuffer.get(s.getNodeID()).offer(s);
         return lastGlobalStat;
@@ -55,20 +51,18 @@ public class CoordinatorThread implements Runnable
         if(buffer.size() == 0)
             return null;
 
-        // calcolo le statistiche locali di ogni nodo
+        // calcolo le statistiche locali di ogni nodo (media delle medie ricevute)
         for(String nodeId: buffer.keySet())
         {
-            double value = buffer.get(nodeId).stream().mapToDouble(Statistic::getValue).average().getAsDouble();
+            double value = buffer.get(nodeId).stream().mapToDouble(Statistic::getValue).average().orElse(0);
 
             Statistic s = Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build();
             System.out.println("COORDINATOR - local stat: "+s.getNodeID()+" "+value+" at " + s.getTimestamp());
             ls.add(s);
         }
 
-        lastLocalStats = ls;
-
         // calcolo la statistica globale
-        double value = ls.stream().mapToDouble(Statistic::getValue).average().getAsDouble();
+        double value = ls.stream().mapToDouble(Statistic::getValue).average().orElse(0);
 
         Statistic s = Statistic.newBuilder().setNodeID("Coord").setValue(value).setTimestamp(node.computeTimestamp()).build();
         lastGlobalStat = s;

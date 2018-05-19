@@ -29,7 +29,7 @@ public class AnalystService
     public Response getCityState()
     {
         List<String> l = NodesGrid.getInstance().getEdgeNodeList()
-                .stream().map(node -> formatNodes(node)).collect(Collectors.toList());
+                .stream().map(this::formatNodes).collect(Collectors.toList());
 
         l.add(0, "Edge network has "+l.size()+" node");
         System.out.println(l); //debug
@@ -46,11 +46,11 @@ public class AnalystService
     @Produces("application/json")
     public Response getNodeStats(@PathParam("id") String nodeId, @PathParam("n") int n)
     {
-        List<String> l = null;
+        List<String> l;
         try
         {
             l = CityStatistics.getInstance().getStats().get(nodeId)
-                    .stream().limit(n).map(s -> formatStats(s)).collect(Collectors.toList());
+                    .stream().limit(n).map(this::formatStats).collect(Collectors.toList());
         }
         catch (NullPointerException npe)
         {
@@ -77,24 +77,24 @@ public class AnalystService
     {
         List<String> l = new ArrayList<>();
 
-        int lenght = 0;
+        int length = 0;
         for(String id: CityStatistics.getInstance().getStats().keySet())
         {
             try
             {
                 l = Stream.concat(l.stream(), CityStatistics.getInstance().getStats().get(id)
-                        .stream().limit(n).map(s -> formatStats(s))).collect(Collectors.toList());
+                        .stream().limit(n).map(this::formatStats)).collect(Collectors.toList());
             }
             catch (NullPointerException npe)
             {
                 return Response.status(404).build();
             }
 
-            if (l.size() - lenght < n)
-                l.add(lenght, id + " stats - Available only " + (l.size() - lenght) + " statistics:");
+            if (l.size() - length < n)
+                l.add(length, id + " stats - Available only " + (l.size() - length) + " statistics:");
             else
-                l.add(lenght, id + " stats - Last " + n + " statistics:");
-            lenght = l.size();
+                l.add(length, id + " stats - Last " + n + " statistics:");
+            length = l.size();
         }
         return Response.ok(new Gson().toJson(l)).build();
     }
@@ -104,7 +104,7 @@ public class AnalystService
     @Produces("application/json")
     public Response getNodeStandardDeviation(@PathParam("id") String id, @PathParam("n") int n)
     {
-        double[] l = null;
+        double[] l;
         try
         {
             l = CityStatistics.getInstance().getStats().get(id)
@@ -118,7 +118,7 @@ public class AnalystService
         double sd = new StandardDeviation().evaluate(l);
         double mean = new Mean().evaluate(l);
 
-        String resp = "";
+        String resp;
         if(l.length < n)
             resp = id + " - Standard deviation: " + sd + ", Mean: "+mean + " - (available only " + l.length + " statistics)";
         else
