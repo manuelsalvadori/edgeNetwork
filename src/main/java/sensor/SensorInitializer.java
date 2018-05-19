@@ -59,7 +59,7 @@ public class SensorInitializer
         {
             case 200:
                 String json = response.getEntity(String.class);
-                output = new Gson().fromJson(json, EdgeNode.class);//response.getEntity(NodeIdentifier.class); // Gson?
+                output = new Gson().fromJson(json, EdgeNode.class);
                 System.out.println(id+ " - Received node; ID: " + output.getId());
                 break;
 

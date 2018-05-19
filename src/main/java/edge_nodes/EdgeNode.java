@@ -30,7 +30,8 @@ public class EdgeNode
     private int y;
     private String serverURI;
     private HashMap<String,String> localNodesList;
-    private PriorityQueue<Measurement> queue;
+    private PriorityQueue<Measurement> buffer;
+    private PriorityQueue<Statistic> tmp_buffer;
     private Statistic lastGlobalStat;
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
@@ -44,6 +45,7 @@ public class EdgeNode
         this.nodesPort = nodesPort;
         this.isCoordinator = false;
         this.serverURI = serverURI;
+        this.tmp_buffer = new PriorityQueue<>((Statistic s1, Statistic s2) -> { return Long.compare(s1.getTimestamp(),s2.getTimestamp()); });
     }
 
     public String getId()
@@ -139,7 +141,7 @@ public class EdgeNode
             {
                 case 200:
                     String json = response.getEntity(String.class);
-                    this.queue = new PriorityQueue<>(40);
+                    this.buffer = new PriorityQueue<>(40);
                     this.localNodesList = new HashMap<>();
                     reportToEdgeNetwork(new Gson().fromJson(json, new TypeToken<HashSet<EdgeNode>>(){}.getType()));
                     System.out.println(this.getId() + " - Successfully added to the cloud");
@@ -195,7 +197,6 @@ public class EdgeNode
         ClientConfig config = new DefaultClientConfig();
         config.getClasses().add(JacksonJaxbJsonProvider.class);
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
-        System.out.println(this.getId()+ " - REST client configured");
         return Client.create(config);
     }
 
@@ -212,27 +213,33 @@ public class EdgeNode
 
     public synchronized void addMeasurement(Measurement m)
     {
-        queue.offer(m);
+        buffer.offer(m);
 
         // alla 40sima misurazione faccio la media tramite
         // sliding window e la mando al coordinatore
 
         int bufferSize = 40;
-        if(queue.size() == bufferSize)
+        if(buffer.size() == bufferSize)
         {
             double mean = 0;
             for (int i = 0; i < bufferSize/2; i++)
-                mean += queue.poll().getValue();
+                mean += buffer.poll().getValue();
             for (int i = 0; i < bufferSize/2; i++)
-                mean += queue.peek().getValue();
+                mean += buffer.peek().getValue();
             mean /= (double)bufferSize;
-            System.out.println(this.getId() + " - localStat: "+mean+" at "+ computeTimestamp());
+            System.out.println(this.getId() + " - localStat: " + mean + " at "+ computeTimestamp());
             sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
         }
     }
 
     public void sendLocalStatistic(Statistic s)
     {
+        if(CoordURI.equals("offline"))
+        {
+            tmp_buffer.offer(s);
+            return;
+        }
+
         final ManagedChannel channel = ManagedChannelBuilder.forTarget(CoordURI).usePlaintext(true).build();
         NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
 
@@ -247,10 +254,18 @@ public class EdgeNode
         }
         catch(StatusRuntimeException e)
         {
+            CoordURI = "offline";
+            tmp_buffer.offer(s);
             System.out.println("Coordinator offline - starting new election...");
             newElection();
         }
         channel.shutdown();
+    }
+
+    private void sendBufferedStats()
+    {
+        tmp_buffer.forEach(this::sendLocalStatistic);
+        tmp_buffer.clear();
     }
 
     // per l'elezione uso l'algoritmo di Bully

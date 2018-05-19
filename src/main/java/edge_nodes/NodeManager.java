@@ -25,7 +25,7 @@ public class NodeManager
         EdgeNode node = new EdgeNode(nodeId, serverURI, sensorPort, nodePort);
         if(!node.nodeInit())
         {
-            System.out.println("Node initialization failed - try again");
+            System.out.println("Node initialization failed - try again later");
             return;
         }
 
@@ -49,10 +49,7 @@ public class NodeManager
         catch (Exception e) {e.printStackTrace();}
 
         System.out.println("Enter 'x' in any time to shutdown this node");
-        String exit = "";
-        while(!exit.equals("x"))
-            exit = io.nextLine();
-
+        while(!io.nextLine().equals("x"));
 
         sensorserver.shutdown();
         nodeserver.shutdown();

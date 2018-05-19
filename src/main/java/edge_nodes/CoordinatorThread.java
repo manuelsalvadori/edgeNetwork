@@ -58,12 +58,7 @@ public class CoordinatorThread implements Runnable
         // calcolo le statistiche locali di ogni nodo
         for(String nodeId: buffer.keySet())
         {
-            double value = 0.0;
-            for(Statistic s: buffer.get(nodeId))
-            {
-                value += s.getValue();
-            }
-            value /= buffer.get(nodeId).size();
+            double value = buffer.get(nodeId).stream().mapToDouble(Statistic::getValue).average().getAsDouble();
 
             Statistic s = Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build();
             System.out.println("COORDINATOR - local stat: "+s.getNodeID()+" "+value+" at " + s.getTimestamp());
@@ -73,12 +68,7 @@ public class CoordinatorThread implements Runnable
         lastLocalStats = ls;
 
         // calcolo la statistica globale
-        double value = 0;
-        for(Statistic s: ls)
-        {
-            value += s.getValue();
-        }
-        value /= ls.size();
+        double value = ls.stream().mapToDouble(Statistic::getValue).average().getAsDouble();
 
         Statistic s = Statistic.newBuilder().setNodeID("Coord").setValue(value).setTimestamp(node.computeTimestamp()).build();
         lastGlobalStat = s;
