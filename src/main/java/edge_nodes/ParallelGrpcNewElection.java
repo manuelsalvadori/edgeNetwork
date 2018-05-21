@@ -25,7 +25,8 @@ public class ParallelGrpcNewElection implements Runnable
         NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
         try
         {
-            stub.newElection(Empty.newBuilder().build());
+            stub.newElection(NodeGRPCOuterClass.NodeURI.newBuilder()
+                    .setNodeID(node.getId()).setNodeURI(node.getNodeURI()+":"+node.getNodesPort()).build());
         }
         catch (StatusRuntimeException e)
         {

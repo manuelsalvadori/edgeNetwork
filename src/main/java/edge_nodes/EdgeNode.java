@@ -35,6 +35,7 @@ public class EdgeNode
     private Statistic lastGlobalStat;
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
+    public WaitForOKs waitOKs;
     private volatile int grpcCounter;
 
     public EdgeNode(String id, String serverURI, int sensorsPort, int nodesPort)
@@ -290,9 +291,19 @@ public class EdgeNode
         }
         // per ogni nodo trovato lancio l'rpc di elezione
         eligible.keySet().forEach(v -> electionGrpc(v, eligible.get(v)));
+
+        // aspetto gli OK di risposta. Se non ne ricevo allora tutti i nodi
+        // con id più alto sono down e quindi il coordinatore sono io
+        waitForOKs();
     }
 
-    private void setMeAsCoordinator()
+    private void waitForOKs()
+    {
+        waitOKs = new WaitForOKs(this);
+        new Thread(waitOKs).start();
+    }
+
+    public void setMeAsCoordinator()
     {
         this.setIsCoordinator(true);
         this.CoordURI = this.nodeURI+":"+this.nodesPort;

@@ -1,6 +1,9 @@
 package edge_nodes;
 
 import com.google.protobuf.Empty;
+import io.grpc.ManagedChannel;
+import io.grpc.ManagedChannelBuilder;
+import io.grpc.StatusRuntimeException;
 import io.grpc.stub.StreamObserver;
 import edge_nodes.NodeGRPCOuterClass.Coordinator;
 import edge_nodes.NodeGRPCOuterClass.NodeURI;
@@ -31,8 +34,9 @@ public class NodeGRPCImpl extends NodeGRPCGrpc.NodeGRPCImplBase
     }
 
     @Override
-    public void newElection(Empty request, StreamObserver<Empty> responseObserver)
+    public void newElection(NodeURI request, StreamObserver<Empty> responseObserver)
     {
+        sendOk(request.getNodeID(),request.getNodeURI());
         node.newElection();
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
@@ -44,5 +48,28 @@ public class NodeGRPCImpl extends NodeGRPCGrpc.NodeGRPCImplBase
         node.setCoordinator(request.getNodeID(), request.getNodeURI());
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
+    }
+
+    @Override
+    public void sendOK(Empty request, StreamObserver<Empty> responseObserver)
+    {
+        node.waitOKs.ok();
+        responseObserver.onNext(Empty.newBuilder().build());
+        responseObserver.onCompleted();
+    }
+
+    private void sendOk(String targetID, String targetURI)
+    {
+        final ManagedChannel channel = ManagedChannelBuilder.forTarget(targetURI).usePlaintext(true).build();
+        NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
+        try
+        {
+            stub.sendOK(Empty.newBuilder().build());
+        }
+        catch (StatusRuntimeException e)
+        {
+            node.removeNodeFromLocalList(targetID);
+        }
+        channel.shutdown();
     }
 }

@@ -11,13 +11,14 @@ import com.sun.jersey.api.json.JSONConfiguration;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
 import java.util.List;
+import java.util.TimerTask;
 
 public class CoordinatorSender implements Runnable
 {
     private CoordinatorThread coordinator;
-    Client RESTclient;
+    private Client RESTclient;
 
-    public CoordinatorSender(CoordinatorThread coordinator)
+    CoordinatorSender(CoordinatorThread coordinator)
     {
         this.coordinator = coordinator;
         this.RESTclient = restClientInit();
@@ -67,7 +68,6 @@ public class CoordinatorSender implements Runnable
             default:
                 System.out.println("COORDINATOR - Failed sending statistics: HTTP error code: " + response.getStatus());
         }
-
     }
 
     private Client restClientInit()

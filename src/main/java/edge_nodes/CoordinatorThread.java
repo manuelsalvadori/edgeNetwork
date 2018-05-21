@@ -20,6 +20,8 @@ public class CoordinatorThread implements Runnable
     public void run()
     {
         statsBuffer = new HashMap<>();
+
+        // ogni 5 secondi invio le statistiche al server
         new Thread(new CoordinatorSender(this)).start();
     }
 

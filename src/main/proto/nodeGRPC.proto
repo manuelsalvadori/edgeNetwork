@@ -26,5 +26,6 @@ service NodeGRPC
     rpc reportNewNode(NodeURI) returns(Coordinator);
     rpc sendStatistic(Statistic) returns(Statistic);
     rpc reportNewCoordinator(NodeURI) returns(google.protobuf.Empty);
-    rpc newElection(google.protobuf.Empty) returns(google.protobuf.Empty);
+    rpc newElection(NodeURI) returns(google.protobuf.Empty);
+    rpc sendOK(google.protobuf.Empty) returns(google.protobuf.Empty);
 }
