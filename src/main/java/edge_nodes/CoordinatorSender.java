@@ -27,6 +27,7 @@ public class CoordinatorSender implements Runnable
     @Override
     public void run()
     {
+        // ogni 5 secondi invio le statistiche al server
         while(true)
         {
             try

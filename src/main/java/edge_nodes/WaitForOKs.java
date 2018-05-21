@@ -24,8 +24,10 @@ public class WaitForOKs implements Runnable
         notify();
     }
 
-    public synchronized boolean checkOKs()
+    private synchronized boolean checkOKs()
     {
+        // aspetto la notify del primo 'ok' entro 5 secondi di timeout;
+        // oltre 5 secondi assumo che tutti i nodi contattati siano usciti dalla rete
         try
         {
             wait(5000);

@@ -293,12 +293,14 @@ public class EdgeNode
         eligible.keySet().forEach(v -> electionGrpc(v, eligible.get(v)));
 
         // aspetto gli OK di risposta. Se non ne ricevo allora tutti i nodi
-        // con id più alto sono down e quindi il coordinatore sono io
+        // con id più alto sono usciti dalla rete e quindi il coordinatore sono io
         waitForOKs();
     }
 
     private void waitForOKs()
     {
+        // aspetto gli OK in modo asincrono su un altro thread
+        // in questo modo nel frattempo posso continuare a raccogliere statistiche
         waitOKs = new WaitForOKs(this);
         new Thread(waitOKs).start();
     }
