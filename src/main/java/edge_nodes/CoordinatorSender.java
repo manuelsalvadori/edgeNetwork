@@ -39,22 +39,24 @@ public class CoordinatorSender implements Runnable
                 Thread.sleep(5000);
             }
             catch (InterruptedException e) { e.printStackTrace(); }
-            System.out.println("***********************************************************************");
+
+            System.out.println("-----------------------------------------------------------------------");
 
             sendStatsToServer(coordinator.computeStats());
 
             if(backupBuffer.size() > 0)
             {
-                List<List<Statistic>> copyList = new ArrayList<>(backupBuffer);
+                List<List<Statistic>> copyList = copyList(backupBuffer);
                 backupBuffer.clear();
                 for (List<Statistic> l: copyList)
                 {
-                    long[] t = l.stream().filter((Statistic s) -> {return s.getNodeID().equals("Coord");}).mapToLong(Statistic::getTimestamp).toArray();
-                    System.out.println("COORDINATOR - Sending buffered stats computed at "+t[0]);
+                    long t = l.stream().filter((Statistic s) -> s.getNodeID().equals("Coord"))
+                            .mapToLong(Statistic::getTimestamp).toArray()[0];
+                    System.out.println("COORDINATOR - Sending buffered stats computed at "+t);
                     sendStatsToServer(l);
                 }
             }
-            System.out.println("***********************************************************************");
+            System.out.println("-----------------------------------------------------------------------");
         }
     }
 
@@ -101,5 +103,12 @@ public class CoordinatorSender implements Runnable
         config.getFeatures().put(JSONConfiguration.FEATURE_POJO_MAPPING, Boolean.TRUE);
         System.out.println("COORDINATOR - REST client configurated");
         return Client.create(config);
+    }
+
+    private List<List<Statistic>> copyList(List<List<Statistic>> toCopy)
+    {
+        List<List<Statistic>> copy = new ArrayList<>(toCopy.size());
+        toCopy.forEach(e -> copy.add(new ArrayList<>(e)));
+        return copy;
     }
 }
