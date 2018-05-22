@@ -10,18 +10,20 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.TimerTask;
 
 public class CoordinatorSender implements Runnable
 {
     private CoordinatorThread coordinator;
     private Client RESTclient;
+    private List<List<NodeGRPCOuterClass.Statistic>> backupBuffer;
 
     CoordinatorSender(CoordinatorThread coordinator)
     {
         this.coordinator = coordinator;
         this.RESTclient = restClientInit();
+        this.backupBuffer = new ArrayList<>();
     }
 
     @Override
@@ -36,47 +38,47 @@ public class CoordinatorSender implements Runnable
             }
             catch (InterruptedException e) { e.printStackTrace(); }
 
-            sendStatsToServer();
+            sendStatsToServer(coordinator.computeStats());
+
+            if(backupBuffer.size() > 0)
+            {
+                backupBuffer.forEach(this::sendStatsToServer);
+                backupBuffer.clear();
+            }
         }
     }
 
-    private void sendStatsToServer()
+    // se il server non risponde salvo le stats in un buffer e riprovo fra 5 secondi
+    private void sendStatsToServer(List<NodeGRPCOuterClass.Statistic> stats)
     {
-        List<NodeGRPCOuterClass.Statistic> l = coordinator.computeStats();
-        if(l == null)
+        if(stats == null)
             return;
 
         ClientResponse response;
         String serverURI = coordinator.getNode().getServerURI();
-        int ntry = 0;
-        while(++ntry <= 5)
+
+        try
         {
-            try
-            {
-
-                WebResource webResource = RESTclient.resource(serverURI + "/SendStatistics/");
-
-                response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(l));
-            }
-            catch (ClientHandlerException ce)
-            {
-                System.out.println("COORDINATOR - Server cloud connection refused - impossible to send data");
-                System.out.println("COORDINATOR - Retry "+ntry+"/5...");
-                continue;
-            }
-
-            switch (response.getStatus())
-            {
-                case 200:
-                    System.out.println("COORDINATOR - Sending statistics to server successful");
-                    return;
-
-                default:
-                    System.out.println("COORDINATOR - Failed sending statistics: HTTP error code: " + response.getStatus());
-            }
+            WebResource webResource = RESTclient.resource(serverURI + "/SendStatistics/");
+            response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(stats));
+        }
+        catch (ClientHandlerException ce)
+        {
+            System.out.println("COORDINATOR - Server cloud connection refused - impossible to send data");
+            backupBuffer.add(stats);
+            return;
         }
 
-        System.out.println("COORDINATOR - Server not responding - No data sent");
+        switch (response.getStatus())
+        {
+            case 200:
+                System.out.println("COORDINATOR - Sending statistics to server successful");
+                return;
+
+            default:
+                backupBuffer.add(stats);
+                System.out.println("COORDINATOR - Failed sending statistics: HTTP error code: " + response.getStatus());
+        }
     }
 
     private Client restClientInit()
