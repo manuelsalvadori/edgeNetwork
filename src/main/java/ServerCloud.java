@@ -23,5 +23,6 @@ public class ServerCloud
         new Scanner(System.in).nextLine();
         server.stop(0);
         System.out.println("Server stopped");
+        System.exit(0);
     }
 }

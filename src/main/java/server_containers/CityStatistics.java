@@ -32,7 +32,7 @@ public class CityStatistics
         for(Statistic s: l)
         {
             if(!stats.containsKey(s.getNodeID()))
-                stats.put(s.getNodeID(),new PriorityQueue<Statistic>(100,(Statistic s1, Statistic s2) -> { return Long.compare(s1.getTimestamp(),s2.getTimestamp()); }));
+                stats.put(s.getNodeID(), new PriorityQueue<>(100, Comparator.comparingLong(Statistic::getTimestamp)));
             if(stats.get(s.getNodeID()).size() >= bound)
                 discardStat(s.getNodeID());
             stats.get(s.getNodeID()).offer(s);

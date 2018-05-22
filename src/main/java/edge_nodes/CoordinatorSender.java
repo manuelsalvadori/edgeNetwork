@@ -1,6 +1,7 @@
 package edge_nodes;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientHandlerException;
 import com.sun.jersey.api.client.ClientResponse;
@@ -12,12 +13,13 @@ import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
 import java.util.ArrayList;
 import java.util.List;
+import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 public class CoordinatorSender implements Runnable
 {
     private CoordinatorThread coordinator;
     private Client RESTclient;
-    private List<List<NodeGRPCOuterClass.Statistic>> backupBuffer;
+    private List<List<Statistic>> backupBuffer;
 
     CoordinatorSender(CoordinatorThread coordinator)
     {
@@ -37,22 +39,33 @@ public class CoordinatorSender implements Runnable
                 Thread.sleep(5000);
             }
             catch (InterruptedException e) { e.printStackTrace(); }
+            System.out.println("***********************************************************************");
 
             sendStatsToServer(coordinator.computeStats());
 
             if(backupBuffer.size() > 0)
             {
-                backupBuffer.forEach(this::sendStatsToServer);
+                List<List<Statistic>> copyList = new ArrayList<>(backupBuffer);
                 backupBuffer.clear();
+                for (List<Statistic> l: copyList)
+                {
+                    long[] t = l.stream().filter((Statistic s) -> {return s.getNodeID().equals("Coord");}).mapToLong(Statistic::getTimestamp).toArray();
+                    System.out.println("COORDINATOR - Sending buffered stats computed at "+t[0]);
+                    sendStatsToServer(l);
+                }
             }
+            System.out.println("***********************************************************************");
         }
     }
 
     // se il server non risponde salvo le stats in un buffer e riprovo fra 5 secondi
-    private void sendStatsToServer(List<NodeGRPCOuterClass.Statistic> stats)
+    private void sendStatsToServer(List<Statistic> stats)
     {
         if(stats == null)
+        {
+            System.out.println("COORDINATOR - Nothing to send yet");
             return;
+        }
 
         ClientResponse response;
         String serverURI = coordinator.getNode().getServerURI();
@@ -60,7 +73,7 @@ public class CoordinatorSender implements Runnable
         try
         {
             WebResource webResource = RESTclient.resource(serverURI + "/SendStatistics/");
-            response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(stats));
+            response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(stats, new TypeToken<List<Statistic>>(){}.getType()));
         }
         catch (ClientHandlerException ce)
         {
