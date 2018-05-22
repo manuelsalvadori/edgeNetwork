@@ -14,7 +14,7 @@ import java.util.List;
 @Path("SendStatistics")
 public class CoordinatorService
 {
-    static int count = 10; // debug
+    //static int count = 10; // debug
     @POST
     @Consumes("application/json")
     public Response addStats(String nodeJson)
@@ -22,8 +22,8 @@ public class CoordinatorService
         Gson g = new Gson();
         List<Statistic> stats = g.fromJson(nodeJson, new TypeToken<List<Statistic>>(){}.getType());
 
-        if(count-- > 0) // debug
-            return Response.status(503).build();
+        //if(count-- > 0) // debug per il testing del buffer del coordinatore
+        //    return Response.status(503).build();
         try
         {
             CityStatistics.getInstance().addStats(stats);
