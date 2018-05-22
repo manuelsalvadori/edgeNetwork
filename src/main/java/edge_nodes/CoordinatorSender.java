@@ -47,28 +47,36 @@ public class CoordinatorSender implements Runnable
             return;
 
         ClientResponse response;
-        try
+        String serverURI = coordinator.getNode().getServerURI();
+        int ntry = 0;
+        while(++ntry <= 5)
         {
-            String serverURI = coordinator.getNode().getServerURI();
-            WebResource webResource = RESTclient.resource(serverURI +"/SendStatistics/");
+            try
+            {
 
-            response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(l));
-        }
-        catch(ClientHandlerException ce)
-        {
-            System.out.println("COORDINATOR - Server cloud connection refused - impossible to send data");
-            return;
+                WebResource webResource = RESTclient.resource(serverURI + "/SendStatistics/");
+
+                response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(l));
+            }
+            catch (ClientHandlerException ce)
+            {
+                System.out.println("COORDINATOR - Server cloud connection refused - impossible to send data");
+                System.out.println("COORDINATOR - Retry "+ntry+"/5...");
+                continue;
+            }
+
+            switch (response.getStatus())
+            {
+                case 200:
+                    System.out.println("COORDINATOR - Sending statistics to server successful");
+                    return;
+
+                default:
+                    System.out.println("COORDINATOR - Failed sending statistics: HTTP error code: " + response.getStatus());
+            }
         }
 
-        switch (response.getStatus())
-        {
-            case 200:
-                System.out.println("COORDINATOR - Sending statistics to server successful" );
-                break;
-
-            default:
-                System.out.println("COORDINATOR - Failed sending statistics: HTTP error code: " + response.getStatus());
-        }
+        System.out.println("COORDINATOR - Server not responding - No data sent");
     }
 
     private Client restClientInit()

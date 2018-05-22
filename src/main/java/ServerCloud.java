@@ -2,6 +2,7 @@ import com.sun.jersey.api.container.httpserver.HttpServerFactory;
 import com.sun.net.httpserver.HttpServer;
 
 import java.io.IOException;
+import java.util.Scanner;
 
 public class ServerCloud
 {
@@ -19,7 +20,7 @@ public class ServerCloud
         System.out.println("Cloud server started on: " + URI);
 
         System.out.println("Press return to stop...");
-        System.in.read();
+        new Scanner(System.in).nextLine();
         server.stop(0);
         System.out.println("Server stopped");
     }

@@ -39,7 +39,7 @@ public class CoordinatorThread implements Runnable
         return new HashMap<>(statsBuffer);
     }
 
-    public synchronized void clearStatsBuffer()
+    private synchronized void clearStatsBuffer()
     {
         statsBuffer.clear();
     }
