@@ -9,7 +9,7 @@ public class CoordinatorThread implements Runnable
     private HashMap<String,PriorityQueue<Statistic>> statsBuffer;
     private volatile Statistic lastGlobalStat;
 
-    public CoordinatorThread(EdgeNode node)
+    CoordinatorThread(EdgeNode node)
     {
         this.node = node;
         lastGlobalStat = Statistic.newBuilder().setNodeID("Coord").setValue(0.0).setTimestamp(0).build();
@@ -30,11 +30,11 @@ public class CoordinatorThread implements Runnable
             statsBuffer.put(s.getNodeID(),new PriorityQueue<>(20, Comparator.comparingLong(Statistic::getTimestamp)));
 
         statsBuffer.get(s.getNodeID()).offer(s);
-        return lastGlobalStat;
+        return lastGlobalStat.getTimestamp() == 0 ? node.getLastGlobalStat() : lastGlobalStat ;
     }
 
     // ritorna una copia del buffer
-    public synchronized HashMap<String, PriorityQueue<Statistic>> getStatsBuffer()
+    private synchronized HashMap<String, PriorityQueue<Statistic>> getStatsBuffer()
     {
         HashMap<String, PriorityQueue<Statistic>> copy = new HashMap<>();
         statsBuffer.keySet().forEach(k -> copy.put(k,new PriorityQueue<>(statsBuffer.get(k))));

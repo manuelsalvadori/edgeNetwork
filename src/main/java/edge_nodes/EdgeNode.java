@@ -89,7 +89,7 @@ public class EdgeNode
         return coordinatorThread;
     }
 
-    public void setIsCoordinator(boolean isCoordinator)
+    private void setIsCoordinator(boolean isCoordinator)
     {
         this.isCoordinator = isCoordinator;
     }
@@ -102,6 +102,11 @@ public class EdgeNode
     public String getServerURI()
     {
         return serverURI;
+    }
+
+    public Statistic getLastGlobalStat()
+    {
+        return lastGlobalStat;
     }
 
     public boolean nodeInit()
@@ -256,8 +261,9 @@ public class EdgeNode
 
     private void sendBufferedStats()
     {
-        tmp_buffer.forEach(this::sendLocalStatistic);
+        PriorityQueue<Statistic> tmp_bufferCopy = new PriorityQueue<>(tmp_buffer);
         tmp_buffer.clear();
+        tmp_bufferCopy.forEach(this::sendLocalStatistic);
     }
 
     // per l'elezione uso l'algoritmo di Bully
@@ -303,12 +309,16 @@ public class EdgeNode
         this.coordinatorThread = new CoordinatorThread(this);
         new Thread(this.coordinatorThread).start();
         System.out.println(this.getId() + " - I am the new coordinator");
+        if(tmp_buffer.size() > 0)
+            sendBufferedStats();
     }
 
     public void setCoordinator(String coordId, String coordUri)
     {
         this.CoordURI = coordUri;
         System.out.println(this.getId() + " - My new coordinator is "+coordId);
+        if(tmp_buffer.size() > 0)
+            sendBufferedStats();
     }
 
     private void electionGrpc(String id, String uri)

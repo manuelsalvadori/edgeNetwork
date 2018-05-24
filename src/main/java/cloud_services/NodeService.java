@@ -6,6 +6,7 @@ import server_containers.NodesGrid;
 
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
+
 @Path("Node")
 public class NodeService
 {
@@ -13,7 +14,7 @@ public class NodeService
     @POST
     @Produces("application/json")
     @Consumes("application/json")
-    public Response getClosestNode(String nodeJson)
+    public Response addNewNode(String nodeJson)
     {
         Gson g = new Gson();
         EdgeNode node = g.fromJson(nodeJson, EdgeNode.class);
