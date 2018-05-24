@@ -22,7 +22,7 @@ public class CoordinatorService
         Gson g = new Gson();
         List<Statistic> stats = g.fromJson(nodeJson, new TypeToken<List<Statistic>>(){}.getType());
 
-        //if(count-- > 0) // debug per il testing del buffer del coordinatore
+        //if(count-- > 0) // debug per il testing del backup buffer del coordinatore
         //    return Response.status(503).build();
         try
         {
@@ -34,6 +34,5 @@ public class CoordinatorService
             e.printStackTrace();
             return Response.status(400).build();
         }
-
     }
 }

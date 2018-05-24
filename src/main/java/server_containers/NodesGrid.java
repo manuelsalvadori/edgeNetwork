@@ -11,7 +11,7 @@ public class NodesGrid
     private static NodesGrid instance;
     private Set<EdgeNode> edgeNodeList;
 
-    public NodesGrid()
+    private NodesGrid()
     {
         this.edgeNodeList = new HashSet<>();
     }

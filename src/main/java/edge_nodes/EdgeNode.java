@@ -46,7 +46,7 @@ public class EdgeNode
         this.nodesPort = nodesPort;
         this.isCoordinator = false;
         this.serverURI = serverURI;
-        this.tmp_buffer = new PriorityQueue<>((Statistic s1, Statistic s2) -> { return Long.compare(s1.getTimestamp(),s2.getTimestamp()); });
+        this.tmp_buffer = new PriorityQueue<>(Comparator.comparingLong(Statistic::getTimestamp));
     }
 
     public String getId()
@@ -102,16 +102,6 @@ public class EdgeNode
     public String getServerURI()
     {
         return serverURI;
-    }
-
-    public HashMap<String,String> getLocalNodesList()
-    {
-        return localNodesList;
-    }
-
-    public void setLocalNodesList(HashMap<String,String> localNodesList)
-    {
-        this.localNodesList = localNodesList;
     }
 
     public boolean nodeInit()
@@ -228,7 +218,7 @@ public class EdgeNode
             for (int i = 0; i < bufferSize/2; i++)
                 mean += buffer.peek().getValue();
             mean /= (double)bufferSize;
-            System.out.println(this.getId() + " - localStat: " + mean + " at "+ computeTimestamp());
+            System.out.println(this.getId() + " - localStat:      " + String.format("%.14f",mean) + " at "+ computeTimestamp());
             sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
         }
     }
@@ -249,7 +239,8 @@ public class EdgeNode
             // salvo la stat lastGlobalStat
             lastGlobalStat = stub.sendStatistic(s);
             if(lastGlobalStat.getTimestamp() != 0)
-                System.out.println(this.getId() + " - lastGlobalStat: "+lastGlobalStat.getValue()+" at "+ lastGlobalStat.getTimestamp());
+                System.out.println(this.getId() + " - lastGlobalStat: " + String.format("%.14f",lastGlobalStat.getValue())
+                        + " at "+ lastGlobalStat.getTimestamp());
             else
                 System.out.println(this.getId() + " - No lastGlobalStat available yet");
         }
@@ -320,17 +311,17 @@ public class EdgeNode
         System.out.println(this.getId() + " - My new coordinator is "+coordId);
     }
 
-    public void electionGrpc(String id, String uri)
+    private void electionGrpc(String id, String uri)
     {
         new Thread(new ParallelGrpcNewElection(id, uri, this)).start();
     }
 
-    public void reportEndElection(String id, String uri)
+    private void reportEndElection(String id, String uri)
     {
         new Thread(new ParallelGrpcReportCoord(id, uri,this)).start();
     }
 
-    public void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
+    private void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
     {
         int size = nodeList.size();
 

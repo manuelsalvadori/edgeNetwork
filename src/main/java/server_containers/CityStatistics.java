@@ -8,9 +8,9 @@ public class CityStatistics
 {
     private static CityStatistics instance;
     private HashMap<String, PriorityQueue<Statistic>> stats;
-    final int bound = 100;
+    final private int bound = 100;
 
-    public CityStatistics()
+    private CityStatistics()
     {
         this.stats = new HashMap<>();
     }
@@ -24,7 +24,9 @@ public class CityStatistics
 
     public synchronized Map<String, PriorityQueue<Statistic>> getStats()
     {
-        return new HashMap<>(stats);
+        HashMap<String, PriorityQueue<Statistic>> copy = new HashMap<>();
+        stats.keySet().forEach(k -> copy.put(k,new PriorityQueue<>(stats.get(k))));
+        return copy;
     }
 
     public synchronized void addStats(List<Statistic> l)

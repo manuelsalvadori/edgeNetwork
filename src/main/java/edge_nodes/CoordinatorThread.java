@@ -1,7 +1,6 @@
 package edge_nodes;
 
 import java.util.*;
-
 import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 public class CoordinatorThread implements Runnable
@@ -34,9 +33,12 @@ public class CoordinatorThread implements Runnable
         return lastGlobalStat;
     }
 
+    // ritorna una copia del buffer
     public synchronized HashMap<String, PriorityQueue<Statistic>> getStatsBuffer()
     {
-        return new HashMap<>(statsBuffer);
+        HashMap<String, PriorityQueue<Statistic>> copy = new HashMap<>();
+        statsBuffer.keySet().forEach(k -> copy.put(k,new PriorityQueue<>(statsBuffer.get(k))));
+        return copy;
     }
 
     private synchronized void clearStatsBuffer()
@@ -59,7 +61,7 @@ public class CoordinatorThread implements Runnable
             double value = buffer.get(nodeId).stream().mapToDouble(Statistic::getValue).average().orElse(0);
 
             Statistic s = Statistic.newBuilder().setNodeID(nodeId).setValue(value).setTimestamp(node.computeTimestamp()).build();
-            System.out.println("COORDINATOR - local stat: "+s.getNodeID()+" "+value+" at " + s.getTimestamp());
+            System.out.println("COORDINATOR - local stat:  "+s.getNodeID()+" "+value+" at " + s.getTimestamp());
             ls.add(s);
         }
 
