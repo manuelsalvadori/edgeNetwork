@@ -21,14 +21,14 @@ import java.util.stream.Collectors;
 
 public class EdgeNode
 {
-    private String id;
-    private String nodeURI;
-    private int sensorsPort;
-    private int nodesPort;
+    private final String id;
+    private final String nodeURI;
+    private final int sensorsPort;
+    private final int nodesPort;
     private boolean isCoordinator;
     private int x;
     private int y;
-    private String serverURI;
+    private final String serverURI;
     private HashMap<String,String> localNodesList;
     private PriorityQueue<Measurement> buffer;
     private PriorityQueue<Statistic> tmp_buffer;
@@ -36,7 +36,6 @@ public class EdgeNode
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
     public WaitForOKs waitOKs;
-    private volatile int grpcCounter;
 
     public EdgeNode(String id, String serverURI, int sensorsPort, int nodesPort)
     {
@@ -349,16 +348,22 @@ public class EdgeNode
         System.out.println(this.getId() + " - Retrieving coordinator...");
 
         // lancio parallelo di gRPC
-        grpcCounter = size;
         int i = 0;
         for(EdgeNode node: nodeList)
         {
             System.out.println("    - gRPC call "+(++i)+": Asking to node "+ node.getId()+"...");
-            new Thread(new ParallelGrpcCoordFinder(this, node.getId(),node.nodeURI+":"+node.getNodesPort(), i)).start();
+            new Thread(new ParallelGrpcCoordFinder(this, node.getId(),node.nodeURI+":"+node.getNodesPort(), i, size)).start();
         }
 
         // aspetto che tutte le chiamate gRPC ritornino
-        while(grpcCounter > 0);
+        try
+        {
+            synchronized(this)
+            {
+                wait();
+            }
+        }
+        catch (InterruptedException e) { e.printStackTrace(); }
 
         // stampo il coordinatore ricevuto
         System.out.println(this.getId() + " - My coordinator is "+CoordURI);
@@ -372,11 +377,6 @@ public class EdgeNode
     public synchronized void removeNodeFromLocalList(String id)
     {
         localNodesList.remove(id);
-    }
-
-    public synchronized void decCounter()
-    {
-        this.grpcCounter--;
     }
 
 }

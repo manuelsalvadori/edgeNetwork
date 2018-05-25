@@ -6,17 +6,20 @@ import io.grpc.StatusRuntimeException;
 
 public class ParallelGrpcCoordFinder implements Runnable
 {
-    private EdgeNode node;
-    private String targetID;
-    private String targetURI;
-    private int i;
+    private final EdgeNode node;
+    private final String targetID;
+    private final String targetURI;
+    private final int i;
+    private final int count;
+    private static int maxRPCs = 0;
 
-    public ParallelGrpcCoordFinder(EdgeNode node, String targetID, String targetURI, int i)
+    ParallelGrpcCoordFinder(EdgeNode node, String targetID, String targetURI, int i, int count)
     {
         this.node = node;
         this.targetID = targetID;
         this.targetURI = targetURI;
         this.i = i;
+        this.count = count;
     }
 
     @Override
@@ -33,16 +36,23 @@ public class ParallelGrpcCoordFinder implements Runnable
                 node.setCoordURI(targetURI);
             else
                 node.addNodeToLocalList(targetID, targetURI);
-            node.decCounter();
 
         }
         catch (StatusRuntimeException e)
         {
-            node.decCounter();
             node.removeNodeFromLocalList(targetID);
         }
 
-        System.out.println("    - gRPC call "+i+" to "+targetID+" completed");
+        // quando tutte le rpc hanno risposto notifico il main thread
+        synchronized (node)
+        {
+            if(++maxRPCs == count)
+            {
+                node.notify();
+            }
+        }
+
+        System.out.println("    - gRPC call " + i + " to " + targetID + " completed");
         channel.shutdown();
     }
 }
