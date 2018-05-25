@@ -17,9 +17,9 @@ import java.util.Random;
 public class SensorInitializer
 {
     private Client sensorClient;
-    private String serverUri;
+    private final String serverUri;
 
-    public SensorInitializer(String restServerUri)
+    SensorInitializer(String restServerUri)
     {
         this.serverUri = restServerUri;
     }
@@ -83,7 +83,7 @@ public class SensorInitializer
         return Client.create(config);
     }
 
-    public static int[] getCoord()
+    private static int[] getCoord()
     {
         Random rnd = new Random(System.currentTimeMillis());
         return new int[]{rnd.nextInt(99), rnd.nextInt(99)};

@@ -6,11 +6,11 @@ import io.grpc.StatusRuntimeException;
 
 public class ParallelGrpcNewElection implements Runnable
 {
-    private String targetID;
-    private String targetURI;
-    private EdgeNode node;
+    private final String targetID;
+    private final String targetURI;
+    private final EdgeNode node;
 
-    public ParallelGrpcNewElection(String targetID, String targetURI, EdgeNode node)
+    ParallelGrpcNewElection(String targetID, String targetURI, EdgeNode node)
     {
         this.targetID = targetID;
         this.targetURI = targetURI;

@@ -10,9 +10,9 @@ import java.io.IOException;
 
 public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
 {
-    EdgeNode node;
+    private final EdgeNode node;
 
-    public SensorGRPCImpl(EdgeNode node)
+    SensorGRPCImpl(EdgeNode node)
     {
         this.node = node;
     }

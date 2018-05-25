@@ -222,12 +222,14 @@ public class EdgeNode
             for (int i = 0; i < bufferSize/2; i++)
                 mean += buffer.peek().getValue();
             mean /= (double)bufferSize;
+
             System.out.println(this.getId() + " - localStat:      " + String.format("%.14f",mean) + " at "+ computeTimestamp());
+
             sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
         }
     }
 
-    public void sendLocalStatistic(Statistic s)
+    private void sendLocalStatistic(Statistic s)
     {
         if(CoordURI.equals("offline"))
         {

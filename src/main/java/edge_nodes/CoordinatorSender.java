@@ -17,8 +17,8 @@ import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 public class CoordinatorSender implements Runnable
 {
-    private CoordinatorThread coordinator;
-    private Client RESTclient;
+    private final CoordinatorThread coordinator;
+    private final Client RESTclient;
     private List<List<Statistic>> backupBuffer;
 
     CoordinatorSender(CoordinatorThread coordinator)

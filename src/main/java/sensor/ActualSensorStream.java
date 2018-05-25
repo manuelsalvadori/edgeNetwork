@@ -14,12 +14,12 @@ import simulation.SensorStream;
 public class ActualSensorStream implements SensorStream
 {
     private volatile EdgeNode myEdgeNode;
-    private Client sensorClient;
-    private String serverUri;
-    private int x;
-    private int y;
-    private Thread nodeUpdater;
-    private String id;
+    private final Client sensorClient;
+    private final String serverUri;
+    private final int x;
+    private final int y;
+    private final Thread nodeUpdater;
+    private final String id;
 
     public ActualSensorStream(String id, Client sensorClient, String serverUri, EdgeNode myEdgeNode, int x, int y)
     {

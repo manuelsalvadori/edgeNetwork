@@ -8,10 +8,10 @@ import edge_nodes.EdgeNode;
 
 public class SensorUpdate implements Runnable
 {
-    ActualSensorStream ss;
+    private final ActualSensorStream ss;
 
 
-    public SensorUpdate(ActualSensorStream ss)
+    SensorUpdate(ActualSensorStream ss)
     {
         this.ss = ss;
     }
@@ -32,7 +32,6 @@ public class SensorUpdate implements Runnable
             }
 
             retrieveNode();
-
         }
 
     }
@@ -71,7 +70,6 @@ public class SensorUpdate implements Runnable
             default:
                 System.out.println(ss.getId()+" - Failed sensor init: HTTP error code: " + response.getStatus());
         }
-
         ss.setMyEdgeNode(output);
     }
 }

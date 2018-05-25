@@ -2,10 +2,10 @@ package edge_nodes;
 
 public class WaitForOKs implements Runnable
 {
-    private EdgeNode node;
+    private final EdgeNode node;
     private int oks;
 
-    public WaitForOKs(EdgeNode node)
+    WaitForOKs(EdgeNode node)
     {
         this.node = node;
         this.oks = 0;
@@ -34,8 +34,6 @@ public class WaitForOKs implements Runnable
         }
         catch (InterruptedException e) { e.printStackTrace(); }
 
-        if(oks > 0)
-            return true;
-        return false;
+        return oks > 0;
     }
 }

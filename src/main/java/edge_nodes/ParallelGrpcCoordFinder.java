@@ -36,7 +36,6 @@ public class ParallelGrpcCoordFinder implements Runnable
                 node.setCoordURI(targetURI);
             else
                 node.addNodeToLocalList(targetID, targetURI);
-
         }
         catch (StatusRuntimeException e)
         {

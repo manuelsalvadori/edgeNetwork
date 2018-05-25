@@ -8,7 +8,7 @@ public class CityStatistics
 {
     private static CityStatistics instance;
     private HashMap<String, PriorityQueue<Statistic>> stats;
-    final private int bound = 100;
+    private final int bound = 200;
 
     private CityStatistics()
     {
@@ -34,17 +34,15 @@ public class CityStatistics
         for(Statistic s: l)
         {
             if(!stats.containsKey(s.getNodeID()))
-                stats.put(s.getNodeID(), new PriorityQueue<>(100, Comparator.comparingLong(Statistic::getTimestamp)));
+                stats.put(s.getNodeID(), new PriorityQueue<>(bound, Comparator.comparingLong(Statistic::getTimestamp)));
             if(stats.get(s.getNodeID()).size() >= bound)
                 discardStat(s.getNodeID());
             stats.get(s.getNodeID()).offer(s);
         }
     }
 
-    public synchronized void discardStat(String node)
+    private synchronized void discardStat(String node)
     {
         stats.get(node).poll();
     }
-
-
 }

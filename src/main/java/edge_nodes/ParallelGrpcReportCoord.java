@@ -6,11 +6,11 @@ import io.grpc.StatusRuntimeException;
 
 public class ParallelGrpcReportCoord implements Runnable
 {
-    private EdgeNode node;
-    private String targetID;
-    private String targetURI;
+    private final EdgeNode node;
+    private final String targetID;
+    private final String targetURI;
 
-    public ParallelGrpcReportCoord(String targetID, String targetURI, EdgeNode node)
+    ParallelGrpcReportCoord(String targetID, String targetURI, EdgeNode node)
     {
         this.targetID = targetID;
         this.targetURI = targetURI;
@@ -32,6 +32,5 @@ public class ParallelGrpcReportCoord implements Runnable
             node.removeNodeFromLocalList(targetID);
         }
         channel.shutdown();
-
     }
 }

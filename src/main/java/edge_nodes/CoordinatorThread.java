@@ -5,7 +5,7 @@ import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 public class CoordinatorThread implements Runnable
 {
-    private EdgeNode node;
+    private final EdgeNode node;
     private HashMap<String,PriorityQueue<Statistic>> statsBuffer;
     private volatile Statistic lastGlobalStat;
 

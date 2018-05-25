@@ -11,9 +11,9 @@ import edge_nodes.NodeGRPCOuterClass.Statistic;
 
 public class NodeGRPCImpl extends NodeGRPCGrpc.NodeGRPCImplBase
 {
-    EdgeNode node;
+    private final EdgeNode node;
 
-    public NodeGRPCImpl(EdgeNode node)
+    NodeGRPCImpl(EdgeNode node)
     {
         this.node = node;
     }
