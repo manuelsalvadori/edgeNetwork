@@ -122,7 +122,7 @@ public class EdgeNode
             ClientResponse response;
             try
             {
-                WebResource webResource = restClient.resource(this.serverURI + "/Node/NodeInit/");
+                WebResource webResource = restClient.resource(this.serverURI + "/Node/" + this.id + "/");
                 String json = new Gson().toJson(this);
                 response = webResource.type("application/json").post(ClientResponse.class, json);
             }
@@ -165,7 +165,7 @@ public class EdgeNode
             ClientResponse response;
             try
             {
-                WebResource webResource = restClient.resource(this.serverURI + "/Node/RemoveNode/" + this.id + "/");
+                WebResource webResource = restClient.resource(this.serverURI + "/Node/" + this.id + "/");
                 response = webResource.delete(ClientResponse.class);
             }
             catch (ClientHandlerException ce)

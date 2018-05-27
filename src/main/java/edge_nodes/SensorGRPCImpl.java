@@ -3,10 +3,7 @@ package edge_nodes;
 import com.google.gson.Gson;
 import com.google.protobuf.Empty;
 import io.grpc.stub.StreamObserver;
-import org.codehaus.jackson.map.ObjectMapper;
 import simulation.Measurement;
-
-import java.io.IOException;
 
 public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
 {

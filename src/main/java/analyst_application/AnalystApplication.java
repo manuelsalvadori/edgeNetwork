@@ -11,7 +11,6 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.json.JSONConfiguration;
 import org.codehaus.jackson.jaxrs.JacksonJaxbJsonProvider;
 
-import java.io.IOException;
 import java.util.List;
 import java.util.Scanner;
 
@@ -119,12 +118,8 @@ public class AnalystApplication
             default:
                 System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
         }
-        System.out.println("Press any key to continue...");
-        try
-        {
-            System.in.read();
-        }
-        catch (IOException e) { e.printStackTrace(); }
+        System.out.println("Press enter key to continue...");
+        new Scanner(System.in).nextLine();
     }
 
     private static void getGlobalStats()

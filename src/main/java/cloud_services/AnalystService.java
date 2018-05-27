@@ -15,8 +15,6 @@ import javax.ws.rs.Produces;
 import javax.ws.rs.core.Response;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -32,7 +30,6 @@ public class AnalystService
                 .stream().map(this::formatNodes).collect(Collectors.toList());
 
         l.add(0, "Edge network has "+l.size()+" node");
-        System.out.println(l); //debug
         return Response.ok(new Gson().toJson(l)).build();
     }
 

@@ -75,7 +75,7 @@ public class CoordinatorSender implements Runnable
         try
         {
             WebResource webResource = RESTclient.resource(serverURI + "/SendStatistics/");
-            response = webResource.type("application/json").post(ClientResponse.class, new Gson().toJson(stats, new TypeToken<List<Statistic>>(){}.getType()));
+            response = webResource.type("application/json").put(ClientResponse.class, new Gson().toJson(stats, new TypeToken<List<Statistic>>(){}.getType()));
         }
         catch (ClientHandlerException ce)
         {

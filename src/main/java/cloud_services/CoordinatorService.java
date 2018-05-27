@@ -7,6 +7,7 @@ import server_containers.CityStatistics;
 
 import javax.ws.rs.Consumes;
 import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
 import javax.ws.rs.Path;
 import javax.ws.rs.core.Response;
 import java.util.List;
@@ -15,7 +16,7 @@ import java.util.List;
 public class CoordinatorService
 {
     //static int count = 10; // debug
-    @POST
+    @PUT
     @Consumes("application/json")
     public Response addStats(String nodeJson)
     {

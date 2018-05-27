@@ -35,8 +35,10 @@ public class CityStatistics
         {
             if(!stats.containsKey(s.getNodeID()))
                 stats.put(s.getNodeID(), new PriorityQueue<>(bound, Comparator.comparingLong(Statistic::getTimestamp)));
+
             if(stats.get(s.getNodeID()).size() >= bound)
                 discardStat(s.getNodeID());
+
             stats.get(s.getNodeID()).offer(s);
         }
     }

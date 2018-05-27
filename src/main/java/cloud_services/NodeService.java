@@ -10,12 +10,13 @@ import javax.ws.rs.core.Response;
 @Path("Node")
 public class NodeService
 {
-    @Path("NodeInit")
+    @Path("{id}")
     @POST
     @Produces("application/json")
     @Consumes("application/json")
-    public Response addNewNode(String nodeJson)
+    public Response addNewNode(String nodeJson, @PathParam("id") String id)
     {
+        System.out.println("Node " + id + " requesting add to network...");
         Gson g = new Gson();
         EdgeNode node = g.fromJson(nodeJson, EdgeNode.class);
 
@@ -27,7 +28,7 @@ public class NodeService
             NodesGrid.getInstance().addNode(node);
             return Response.ok(jsonNodeList).build();
         }
-
+        else
         if(isLegal.equals("Illegal position"))
             return Response.status(403).entity(isLegal).build();
 
@@ -58,30 +59,22 @@ public class NodeService
 
     private boolean testPosition(int x, int y, EdgeNode nid)
     {
-        if(!checkDistance(nid.getX(), nid.getY(), x, y))
-            return false;
-        return true;
+        return checkDistance(nid.getX(), nid.getY(), x, y);
     }
 
     private boolean testNodeID(String id, EdgeNode nid)
     {
-        if(nid.getId().equals(id))
-            return false;
-        return true;
+        return !nid.getId().equals(id);
     }
 
     private boolean testSensorsPort(int port, EdgeNode nid)
     {
-        if(nid.getSensorsPort() == port)
-            return false;
-        return true;
+        return nid.getSensorsPort() != port;
     }
 
     private boolean testNodesPort(int port, EdgeNode nid)
     {
-        if(nid.getNodesPort() == port)
-            return false;
-        return true;
+        return nid.getNodesPort() != port;
     }
 
     private boolean checkDistance(int x1, int y1, int x2, int y2)
@@ -89,7 +82,7 @@ public class NodeService
         return Math.abs(x1-x2) + Math.abs(y1-y2) > 20;
     }
 
-    @Path("RemoveNode/{id}")
+    @Path("{id}")
     @DELETE
     public Response removeNode(@PathParam("id") String id)
     {

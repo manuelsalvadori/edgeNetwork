@@ -30,9 +30,9 @@ public class ParallelGrpcCoordFinder implements Runnable
         NodeGRPCOuterClass.NodeURI uri = NodeGRPCOuterClass.NodeURI.newBuilder().setNodeID(node.getId()).setNodeURI(node.getNodeURI()+":"+node.getNodesPort()).build();
         try
         {
-            NodeGRPCOuterClass.Coordinator coordinator = stub.reportNewNode(uri);
+            NodeGRPCOuterClass.Coordinator isCoordinator = stub.reportNewNode(uri);
 
-            if (coordinator.getIsCoord())
+            if (isCoordinator.getIsCoord())
                 node.setCoordURI(targetURI);
             else
                 node.addNodeToLocalList(targetID, targetURI);
