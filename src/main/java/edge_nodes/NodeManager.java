@@ -48,6 +48,9 @@ public class NodeManager
         }
         catch (Exception e) {e.printStackTrace();}
 
+        assert sensorserver != null;
+        assert nodeserver != null;
+
         System.out.println("Enter 'x' in any time to shutdown this node");
         while(!io.nextLine().equals("x"));
 
