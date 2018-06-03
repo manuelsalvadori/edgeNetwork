@@ -93,6 +93,8 @@ public class AnalystService
                 l.add(length, id + " stats - Last " + n + " statistics:");
             length = l.size();
         }
+        if(l.size() == 0)
+            l.add("No statistics received yet - try later");
         return Response.ok(new Gson().toJson(l)).build();
     }
 
@@ -143,6 +145,10 @@ public class AnalystService
                 return Response.status(404).build();
             }
         }
+
+        if(l.size() == 0)
+            return Response.ok(new Gson().toJson("No statistics available yet - Try later")).build();
+
         double[] array = l.stream().mapToDouble(Double::doubleValue).toArray();
 
         double sd = new StandardDeviation().evaluate(array);

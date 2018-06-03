@@ -141,17 +141,15 @@ public class AnalystApplication
             return;
         }
 
-        switch (response.getStatus())
+        if(response.getStatus() == 200)
         {
-            case 200:
-                List<String> stats = new Gson().fromJson(response.getEntity(String.class),
-                        new TypeToken<List<String>>(){}.getType());
-                stats.forEach(System.out::println);
-                break;
-
-            default:
-                System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
+            List<String> stats = new Gson().fromJson(response.getEntity(String.class),
+                    new TypeToken<List<String>>() {}.getType());
+            stats.forEach(System.out::println);
         }
+        else
+            System.out.println("Analyst Application - Failed retrieving statistics: HTTP error code: " + response.getStatus());
+
         System.out.println("Press enter to continue...");
         scan.nextLine();
     }

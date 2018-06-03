@@ -59,6 +59,8 @@ public class NodeManager
 
         System.out.println("Node terminated");
         while(!(sensorserver.isTerminated() && nodeserver.isTerminated()));
+
+        // rimuovo il nodo dalla rete edge
         node.removeFromCloud();
         System.exit(0);
     }
