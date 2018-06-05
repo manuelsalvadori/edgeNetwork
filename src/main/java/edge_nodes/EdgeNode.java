@@ -88,9 +88,9 @@ public class EdgeNode
         return coordinatorThread;
     }
 
-    private void setIsCoordinator(boolean isCoordinator)
+    private void setIsCoordinator()
     {
-        this.isCoordinator = isCoordinator;
+        this.isCoordinator = true;
     }
 
     public void setCoordURI(String uri)
@@ -208,6 +208,11 @@ public class EdgeNode
 
     public synchronized void addMeasurement(Measurement m)
     {
+//        // DEBUG - test concorrenza
+//        System.out.println("+ **** DEBUG - addMeasure() sleeping ****");
+//        try { Thread.sleep(2000); } catch (InterruptedException e) { e.printStackTrace(); }
+//        System.out.println("- **** DEBUG - addMeasure() awaked ****");
+
         buffer.offer(m);
 
         // alla 40sima misurazione faccio la media tramite
@@ -217,10 +222,12 @@ public class EdgeNode
         if(buffer.size() == bufferSize)
         {
             double mean = 0;
+
             for (int i = 0; i < bufferSize/2; i++)
                 mean += buffer.poll().getValue();
             for (int i = 0; i < bufferSize/2; i++)
                 mean += buffer.peek().getValue();
+
             mean /= (double)bufferSize;
 
             System.out.println(this.getId() + " - localStat:      " + String.format("%.14f",mean) + " at "+ computeTimestamp());
@@ -270,6 +277,13 @@ public class EdgeNode
     // per l'elezione uso l'algoritmo di Bully
     public void newElection()
     {
+/*      DEBUG - test entrata nodo ad elezione in corso
+
+        System.out.println("**** DEBUG - NEW ELECTION SLEEP FOR 5 SEC ****");
+        try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
+        System.out.println("**** DEBUG - NEW ELECTION AWAKED ****");
+*/
+
         if(isCoordinator)
             return;
 
@@ -305,11 +319,14 @@ public class EdgeNode
 
     public void setMeAsCoordinator()
     {
-        this.setIsCoordinator(true);
+        this.setIsCoordinator();
         this.CoordURI = this.nodeURI+":"+this.nodesPort;
+
         this.coordinatorThread = new CoordinatorThread(this);
         new Thread(this.coordinatorThread).start();
+
         System.out.println(this.getId() + " - I am the new coordinator");
+
         if(tmp_buffer.size() > 0)
             sendBufferedStats();
     }
@@ -332,6 +349,7 @@ public class EdgeNode
         new Thread(new ParallelGrpcReportCoord(id, uri,this)).start();
     }
 
+    // quando un nodo entra in rete si presenta e chiede chi è il coordinatore
     private void reportToEdgeNetwork(HashSet<EdgeNode> nodeList)
     {
         int size = nodeList.size();
@@ -339,7 +357,7 @@ public class EdgeNode
         // se la lista dei nodi ricevuta è vuota setto il nodo this come coordinatore
         if(size == 0)
         {
-            this.setIsCoordinator(true);
+            this.setIsCoordinator();
             this.CoordURI = this.nodeURI+":"+this.nodesPort;
             this.coordinatorThread = new CoordinatorThread(this);
             new Thread(this.coordinatorThread).start();
@@ -349,11 +367,11 @@ public class EdgeNode
 
         System.out.println(this.getId() + " - Retrieving coordinator...");
 
-        // lancio parallelo di gRPC
+        // lancio parallelo di gRPC - mi presento e chiedo chi è il coordinatore
         int i = 0;
         for(EdgeNode node: nodeList)
         {
-            System.out.println("    - gRPC call "+(++i)+": Asking to node "+ node.getId()+"...");
+            System.out.println("    - gRPC call " + (++i) + ": Asking to node "+ node.getId() + "...");
             new Thread(new ParallelGrpcCoordFinder(this, node.getId(),node.nodeURI+":"+node.getNodesPort(), i, size)).start();
         }
 

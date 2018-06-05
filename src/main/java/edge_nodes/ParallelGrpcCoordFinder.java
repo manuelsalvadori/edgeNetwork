@@ -3,6 +3,7 @@ package edge_nodes;
 import io.grpc.ManagedChannel;
 import io.grpc.ManagedChannelBuilder;
 import io.grpc.StatusRuntimeException;
+import edge_nodes.NodeGRPCOuterClass.NodeURI;
 
 public class ParallelGrpcCoordFinder implements Runnable
 {
@@ -27,7 +28,12 @@ public class ParallelGrpcCoordFinder implements Runnable
     {
         final ManagedChannel channel = ManagedChannelBuilder.forTarget(targetURI).usePlaintext(true).build();
         NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
-        NodeGRPCOuterClass.NodeURI uri = NodeGRPCOuterClass.NodeURI.newBuilder().setNodeID(node.getId()).setNodeURI(node.getNodeURI()+":"+node.getNodesPort()).build();
+
+        NodeURI uri = NodeURI.newBuilder()
+                .setNodeID(node.getId())
+                .setNodeURI(node.getNodeURI()+":"+node.getNodesPort())
+                .build();
+
         try
         {
             NodeGRPCOuterClass.Coordinator isCoordinator = stub.reportNewNode(uri);
@@ -42,7 +48,7 @@ public class ParallelGrpcCoordFinder implements Runnable
             node.removeNodeFromLocalList(targetID);
         }
 
-        // quando tutte le rpc hanno risposto notifico il main thread
+        // notifico il main thread solo quando tutte le grpc hanno risposto
         synchronized (node)
         {
             if(++maxRPCs == count)

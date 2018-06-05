@@ -31,6 +31,11 @@ public class CityStatistics
 
     public synchronized void addStats(List<Statistic> l)
     {
+//        // DEBUG - test concorrenza
+//        System.out.println("+ **** DEBUG - addStats() sleeping ****");
+//        try { Thread.sleep(6000); } catch (InterruptedException e) { e.printStackTrace(); }
+//        System.out.println("- **** DEBUG - addStats() awaked ****");
+
         for(Statistic s: l)
         {
             if(!stats.containsKey(s.getNodeID()))

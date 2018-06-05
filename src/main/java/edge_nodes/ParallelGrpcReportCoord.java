@@ -22,7 +22,12 @@ public class ParallelGrpcReportCoord implements Runnable
     {
         final ManagedChannel channel = ManagedChannelBuilder.forTarget(targetURI).usePlaintext(true).build();
         NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
-        NodeGRPCOuterClass.NodeURI nodeUri = NodeGRPCOuterClass.NodeURI.newBuilder().setNodeID(node.getId()).setNodeURI(node.getNodeURI()+":"+node.getNodesPort()).build();
+
+        NodeGRPCOuterClass.NodeURI nodeUri = NodeGRPCOuterClass.NodeURI.newBuilder()
+                .setNodeID(node.getId())
+                .setNodeURI(node.getNodeURI()+":"+node.getNodesPort())
+                .build();
+
         try
         {
             stub.reportNewCoordinator(nodeUri);

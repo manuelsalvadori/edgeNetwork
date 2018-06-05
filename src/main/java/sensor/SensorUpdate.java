@@ -10,7 +10,6 @@ public class SensorUpdate implements Runnable
 {
     private final ActualSensorStream ss;
 
-
     SensorUpdate(ActualSensorStream ss)
     {
         this.ss = ss;

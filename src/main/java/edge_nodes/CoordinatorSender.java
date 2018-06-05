@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import edge_nodes.NodeGRPCOuterClass.Statistic;
 
-public class CoordinatorSender implements Runnable
+public class CoordinatorSender implements Runnable // questo thread si occupa di inviare ogni 5 sec le stats al server
 {
     private final CoordinatorThread coordinator;
     private final Client RESTclient;
@@ -48,11 +48,13 @@ public class CoordinatorSender implements Runnable
             {
                 List<List<Statistic>> copyList = copyList(backupBuffer);
                 backupBuffer.clear();
+
                 for (List<Statistic> l: copyList)
                 {
-                    long t = l.stream().filter((Statistic s) -> s.getNodeID().equals("Coord"))
+                    long timestamp = l.stream().filter((Statistic s) -> s.getNodeID().equals("Coord"))
                             .mapToLong(Statistic::getTimestamp).toArray()[0];
-                    System.out.println("COORDINATOR - Sending buffered stats computed at "+t);
+
+                    System.out.println("COORDINATOR - Sending buffered stats computed at " + timestamp);
                     sendStatsToServer(l);
                 }
             }
@@ -60,7 +62,7 @@ public class CoordinatorSender implements Runnable
         }
     }
 
-    // se il server non risponde salvo le stats in un buffer e riprovo fra 5 secondi
+    // quando invio le stats, se il server non risponde le salvo in un buffer di backup e riprovo fra 5 secondi
     private void sendStatsToServer(List<Statistic> stats)
     {
         if(stats == null)

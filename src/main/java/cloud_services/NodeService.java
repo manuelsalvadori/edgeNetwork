@@ -89,6 +89,6 @@ public class NodeService
         if(NodesGrid.getInstance().removeNode(id))
             return Response.ok().build();
 
-        return Response.status(404).entity("No such node in the cloud").build();
+        return Response.status(404).entity("No such node in the edge network").build();
     }
 }

@@ -21,7 +21,7 @@ public class ActualSensorStream implements SensorStream
     private final Thread nodeUpdater;
     private final String id;
 
-    public ActualSensorStream(String id, Client sensorClient, String serverUri, EdgeNode myEdgeNode, int x, int y)
+    ActualSensorStream(String id, Client sensorClient, String serverUri, EdgeNode myEdgeNode, int x, int y)
     {
         this.id = id;
         this.sensorClient = sensorClient;
@@ -53,7 +53,11 @@ public class ActualSensorStream implements SensorStream
 
         final ManagedChannel channel = ManagedChannelBuilder.forTarget("localhost:"+ myEdgeNode.getSensorsPort()).usePlaintext(true).build();
         SensorGRPCGrpc.SensorGRPCBlockingStub stub = SensorGRPCGrpc.newBlockingStub(channel);
-        SensorGRPCOuterClass.Measure request = SensorGRPCOuterClass.Measure.newBuilder().setM(measurement).build();
+
+        SensorGRPCOuterClass.Measure request = SensorGRPCOuterClass.Measure
+                .newBuilder()
+                .setM(measurement)
+                .build();
 
         try
         {

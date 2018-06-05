@@ -22,6 +22,7 @@ public class NodeGRPCImpl extends NodeGRPCGrpc.NodeGRPCImplBase
     public void reportNewNode(NodeURI request, StreamObserver<Coordinator> responseObserver)
     {
         node.addNodeToLocalList(request.getNodeID(), request.getNodeURI());
+
         responseObserver.onNext(Coordinator.newBuilder().setIsCoord(node.getIsCoordinator()).build());
         responseObserver.onCompleted();
     }

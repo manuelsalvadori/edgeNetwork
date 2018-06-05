@@ -22,10 +22,13 @@ public class ParallelGrpcNewElection implements Runnable
     {
         final ManagedChannel channel = ManagedChannelBuilder.forTarget(targetURI).usePlaintext(true).build();
         NodeGRPCGrpc.NodeGRPCBlockingStub stub = NodeGRPCGrpc.newBlockingStub(channel);
+
         try
         {
             stub.newElection(NodeGRPCOuterClass.NodeURI.newBuilder()
-                    .setNodeID(node.getId()).setNodeURI(node.getNodeURI()+":"+node.getNodesPort()).build());
+                    .setNodeID(node.getId())
+                    .setNodeURI(node.getNodeURI()+":"+node.getNodesPort())
+                    .build());
         }
         catch (StatusRuntimeException e)
         {

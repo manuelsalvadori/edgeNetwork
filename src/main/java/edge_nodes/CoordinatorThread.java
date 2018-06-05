@@ -3,7 +3,7 @@ package edge_nodes;
 import java.util.*;
 import edge_nodes.NodeGRPCOuterClass.Statistic;
 
-public class CoordinatorThread implements Runnable
+public class CoordinatorThread implements Runnable // questo thread gestisce la logica del coordinatore
 {
     private final EdgeNode node;
     private HashMap<String,PriorityQueue<Statistic>> statsBuffer;
@@ -20,17 +20,22 @@ public class CoordinatorThread implements Runnable
     {
         statsBuffer = new HashMap<>();
 
-        // ogni 5 secondi invio le statistiche al server
+        // ogni 5 secondi invio le statistiche al server usando un thread apposito
         new Thread(new CoordinatorSender(this)).start();
     }
 
     public synchronized Statistic addStatistic(Statistic s)
     {
+//        // DEBUG - test concorrenza
+//        System.out.println("+ **** DEBUG - addStatistic() sleeping ****");
+//        try { Thread.sleep(4000); } catch (InterruptedException e) { e.printStackTrace(); }
+//        System.out.println("- **** DEBUG - addStatistic() awaked ****");
+
         if(!statsBuffer.containsKey(s.getNodeID()))
             statsBuffer.put(s.getNodeID(),new PriorityQueue<>(20, Comparator.comparingLong(Statistic::getTimestamp)));
 
         statsBuffer.get(s.getNodeID()).offer(s);
-        return lastGlobalStat.getTimestamp() == 0 ? node.getLastGlobalStat() : lastGlobalStat ;
+        return lastGlobalStat.getTimestamp() == 0 ? node.getLastGlobalStat() : lastGlobalStat;
     }
 
     // ritorna una copia del buffer
@@ -46,6 +51,7 @@ public class CoordinatorThread implements Runnable
         statsBuffer.clear();
     }
 
+    // aggrego le statistiche per l'invio al server
     public List<Statistic> computeStats()
     {
         List<Statistic> ls = new ArrayList<>();

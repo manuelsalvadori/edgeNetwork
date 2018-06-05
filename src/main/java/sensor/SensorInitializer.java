@@ -24,6 +24,7 @@ public class SensorInitializer
         this.serverUri = restServerUri;
     }
 
+    // creo e faccio partire il thread simulatore di sensore
     public void runSensor(String id)
     {
         try
@@ -38,6 +39,7 @@ public class SensorInitializer
 
     }
 
+    // mando la richiesta REST al server per ottenere il nodo assegnato
     private EdgeNode sensorInit(String id, int x, int y)
     {
         System.out.println(id+ " - Sensor initialization...");

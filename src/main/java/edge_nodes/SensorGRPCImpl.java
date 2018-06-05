@@ -24,8 +24,8 @@ public class SensorGRPCImpl extends SensorGRPCGrpc.SensorGRPCImplBase
         }
         catch (Exception e) { e.printStackTrace(); }
 
-        //debug System.out.println("id: "+m.getId()+" value: "+m.getValue() + " time: "+m.getTimestamp());
         node.addMeasurement(m);
+
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }
