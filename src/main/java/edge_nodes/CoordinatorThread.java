@@ -8,7 +8,7 @@ public class CoordinatorThread implements Runnable // questo thread gestisce la 
     private final EdgeNode node;
     private HashMap<String,PriorityQueue<Statistic>> statsBuffer;
     private volatile Statistic lastGlobalStat;
-    private CoordinatorSender sender;
+    private final CoordinatorSender sender;
 
     CoordinatorThread(EdgeNode node)
     {
