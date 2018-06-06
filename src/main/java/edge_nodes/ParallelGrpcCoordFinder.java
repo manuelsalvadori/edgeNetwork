@@ -40,8 +40,7 @@ public class ParallelGrpcCoordFinder implements Runnable
 
             if (isCoordinator.getIsCoord())
                 node.setCoordURI(targetURI);
-            else
-                node.addNodeToLocalList(targetID, targetURI);
+            node.addNodeToLocalList(targetID, targetURI);
         }
         catch (StatusRuntimeException e)
         {

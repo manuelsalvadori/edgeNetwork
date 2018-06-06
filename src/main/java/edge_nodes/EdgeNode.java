@@ -35,7 +35,7 @@ public class EdgeNode
     private Statistic lastGlobalStat;
     private String CoordURI;
     private CoordinatorThread coordinatorThread;
-    public WaitForOKs waitOKs;
+    private WaitForOKs waitOKs = null;
 
     public EdgeNode(String id, String serverURI, int sensorsPort, int nodesPort)
     {
@@ -86,6 +86,11 @@ public class EdgeNode
     public CoordinatorThread getCoordinatorThread()
     {
         return coordinatorThread;
+    }
+
+    public WaitForOKs getWaitForOks()
+    {
+        return waitOKs;
     }
 
     private void setIsCoordinator()
@@ -158,7 +163,7 @@ public class EdgeNode
         return false;
     }
 
-    public void removeFromCloud()
+    void removeFromCloud()
     {
         Client restClient = restClientInit();
 
@@ -195,7 +200,7 @@ public class EdgeNode
         return Client.create(config);
     }
 
-    public long computeTimestamp()
+    long computeTimestamp()
     {
         Calendar cal = Calendar.getInstance();
         cal.set(Calendar.HOUR_OF_DAY, 0);
@@ -206,7 +211,7 @@ public class EdgeNode
         return System.currentTimeMillis() - cal.getTimeInMillis();
     }
 
-    public synchronized void addMeasurement(Measurement m)
+    synchronized void addMeasurement(Measurement m)
     {
 //        // DEBUG - test concorrenza
 //        System.out.println("+ **** DEBUG - addMeasure() sleeping ****");
@@ -225,14 +230,17 @@ public class EdgeNode
 
             for (int i = 0; i < bufferSize/2; i++)
                 mean += buffer.poll().getValue();
-            for (int i = 0; i < bufferSize/2; i++)
-                mean += buffer.peek().getValue();
 
+            mean += buffer.stream().mapToDouble(Measurement::getValue).sum();
             mean /= (double)bufferSize;
 
-            System.out.println(this.getId() + " - localStat:      " + String.format("%.14f",mean) + " at "+ computeTimestamp());
+            System.out.println(getId() + " - localStat:      " + String.format("%.14f",mean) + " at "+ computeTimestamp());
 
-            sendLocalStatistic(Statistic.newBuilder().setNodeID(id).setValue(mean).setTimestamp(computeTimestamp()).build());
+            sendLocalStatistic(Statistic.newBuilder()
+                    .setNodeID(id)
+                    .setValue(mean)
+                    .setTimestamp(computeTimestamp())
+                    .build());
         }
     }
 
@@ -275,14 +283,13 @@ public class EdgeNode
     }
 
     // per l'elezione uso l'algoritmo di Bully
-    public void newElection()
+    synchronized void newElection()
     {
-/*      DEBUG - test entrata nodo ad elezione in corso
-
-        System.out.println("**** DEBUG - NEW ELECTION SLEEP FOR 5 SEC ****");
-        try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
-        System.out.println("**** DEBUG - NEW ELECTION AWAKED ****");
-*/
+//      DEBUG - test entrata nodo ad elezione in corso
+//
+//        System.out.println("**** DEBUG - NEW ELECTION SLEEP FOR 5 SEC ****");
+//        try { Thread.sleep(5000); } catch (InterruptedException e) { e.printStackTrace(); }
+//        System.out.println("**** DEBUG - NEW ELECTION AWAKED ****");
 
         if(isCoordinator)
             return;
@@ -309,16 +316,22 @@ public class EdgeNode
         waitForOKs();
     }
 
-    private void waitForOKs()
+    private synchronized void waitForOKs()
     {
         // aspetto gli OK in modo asincrono su un altro thread
         // in questo modo nel frattempo posso continuare a raccogliere statistiche
-        waitOKs = new WaitForOKs(this);
-        new Thread(waitOKs).start();
+        if(waitOKs == null)
+        {
+            waitOKs = new WaitForOKs(this);
+            new Thread(waitOKs).start();
+        }
     }
 
-    public void setMeAsCoordinator()
+    void setMeAsCoordinator()
     {
+        if(isCoordinator)
+            return;
+
         this.setIsCoordinator();
         this.CoordURI = this.nodeURI+":"+this.nodesPort;
 
@@ -331,15 +344,23 @@ public class EdgeNode
             sendBufferedStats();
     }
 
-    public void setCoordinator(String coordId, String coordUri)
+    void setCoordinator(String coordId, String coordUri)
     {
+        if(isCoordinator)
+        {
+            isCoordinator = false;
+            coordinatorThread.stop();
+            coordinatorThread = null;
+        }
+
+        this.waitOKs = null;
         this.CoordURI = coordUri;
         System.out.println(this.getId() + " - My new coordinator is "+coordId);
         if(tmp_buffer.size() > 0)
             sendBufferedStats();
     }
 
-    private void electionGrpc(String id, String uri)
+    private synchronized void electionGrpc(String id, String uri)
     {
         new Thread(new ParallelGrpcNewElection(id, uri, this)).start();
     }
@@ -389,12 +410,12 @@ public class EdgeNode
         System.out.println(this.getId() + " - My coordinator is "+CoordURI);
     }
 
-    public synchronized void addNodeToLocalList(String id, String uri)
+    synchronized void addNodeToLocalList(String id, String uri)
     {
         localNodesList.put(id, uri);
     }
 
-    public synchronized void removeNodeFromLocalList(String id)
+    synchronized void removeNodeFromLocalList(String id)
     {
         localNodesList.remove(id);
     }

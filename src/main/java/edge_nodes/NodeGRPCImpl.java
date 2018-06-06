@@ -54,7 +54,11 @@ public class NodeGRPCImpl extends NodeGRPCGrpc.NodeGRPCImplBase
     @Override
     public void sendOK(Empty request, StreamObserver<Empty> responseObserver)
     {
-        node.waitOKs.ok();
+        try
+        {
+            node.getWaitForOks().ok();
+        }
+        catch(NullPointerException e){}
         responseObserver.onNext(Empty.newBuilder().build());
         responseObserver.onCompleted();
     }

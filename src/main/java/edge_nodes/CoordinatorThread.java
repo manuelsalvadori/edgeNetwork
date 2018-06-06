@@ -8,11 +8,13 @@ public class CoordinatorThread implements Runnable // questo thread gestisce la 
     private final EdgeNode node;
     private HashMap<String,PriorityQueue<Statistic>> statsBuffer;
     private volatile Statistic lastGlobalStat;
+    private CoordinatorSender sender;
 
     CoordinatorThread(EdgeNode node)
     {
         this.node = node;
         lastGlobalStat = Statistic.newBuilder().setNodeID("Coord").setValue(0.0).setTimestamp(0).build();
+        sender = new CoordinatorSender(this);
     }
 
     @Override
@@ -21,10 +23,10 @@ public class CoordinatorThread implements Runnable // questo thread gestisce la 
         statsBuffer = new HashMap<>();
 
         // ogni 5 secondi invio le statistiche al server usando un thread apposito
-        new Thread(new CoordinatorSender(this)).start();
+        new Thread(sender).start();
     }
 
-    public synchronized Statistic addStatistic(Statistic s)
+    synchronized Statistic addStatistic(Statistic s)
     {
 //        // DEBUG - test concorrenza
 //        System.out.println("+ **** DEBUG - addStatistic() sleeping ****");
@@ -52,7 +54,7 @@ public class CoordinatorThread implements Runnable // questo thread gestisce la 
     }
 
     // aggrego le statistiche per l'invio al server
-    public List<Statistic> computeStats()
+    List<Statistic> computeStats()
     {
         List<Statistic> ls = new ArrayList<>();
         HashMap<String, PriorityQueue<Statistic>> buffer = getStatsBuffer();
@@ -81,6 +83,11 @@ public class CoordinatorThread implements Runnable // questo thread gestisce la 
         ls.add(s);
 
         return ls;
+    }
+
+    void stop()
+    {
+        this.sender.stop();
     }
 
     public EdgeNode getNode()

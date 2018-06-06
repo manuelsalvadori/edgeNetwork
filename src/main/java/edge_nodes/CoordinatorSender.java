@@ -20,6 +20,7 @@ public class CoordinatorSender implements Runnable // questo thread si occupa di
     private final CoordinatorThread coordinator;
     private final Client RESTclient;
     private List<List<Statistic>> backupBuffer;
+    private boolean running = true;
 
     CoordinatorSender(CoordinatorThread coordinator)
     {
@@ -32,7 +33,7 @@ public class CoordinatorSender implements Runnable // questo thread si occupa di
     public void run()
     {
         // ogni 5 secondi invio le statistiche al server
-        while(true)
+        while(running)
         {
             try
             {
@@ -112,5 +113,10 @@ public class CoordinatorSender implements Runnable // questo thread si occupa di
         List<List<Statistic>> copy = new ArrayList<>(toCopy.size());
         toCopy.forEach(e -> copy.add(new ArrayList<>(e)));
         return copy;
+    }
+
+    void stop()
+    {
+        running = false;
     }
 }

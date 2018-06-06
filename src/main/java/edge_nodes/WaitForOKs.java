@@ -26,14 +26,14 @@ public class WaitForOKs implements Runnable // thread che durante l'elezione ric
 
     private synchronized boolean checkOKs()
     {
-        // aspetto la notify del primo 'ok' entro 6 secondi di timeout;
-        // oltre 6 secondi assumo che tutti i nodi contattati siano usciti dalla rete
+        // aspetto la notify del primo 'ok' entro 10 secondi di timeout;
+        // oltre 10 secondi assumo che tutti i nodi contattati siano usciti dalla rete
         try
         {
-            wait(6000);
+            wait(10000);
         }
         catch (InterruptedException e) { e.printStackTrace(); }
-        System.out.println("******** OKS: "+oks); // debug
+
         return oks > 0;
     }
 }
